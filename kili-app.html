@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kili App – Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green-dark: #1a5c2e;
+    --green-mid: #2e8b3e;
+    --green-light: #6abf35;
+    --green-lime: #a8d800;
+    --black: #0d0d0d;
+    --white: #f8faf5;
+    --grey: #e8ede3;
+    --text-muted: #6b7c65;
+  }
+
+  body {
+    background: #1a1a1a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    font-family: 'Barlow', sans-serif;
+    padding: 24px 16px 40px;
+    gap: 16px;
+  }
+
+  .label {
+    color: #666;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-family: 'Barlow Condensed', sans-serif;
+  }
+
+  /* Phone shell */
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: var(--white);
+    border-radius: 50px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 40px 120px rgba(0,0,0,0.8), 0 0 0 2px #333, inset 0 0 0 1px rgba(255,255,255,0.05);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Status bar */
+  .status-bar {
+    height: 48px;
+    background: var(--green-dark);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    flex-shrink: 0;
+  }
+  .status-bar .time { color: white; font-size: 15px; font-weight: 600; font-family: 'Barlow Condensed', sans-serif; letter-spacing: 1px; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons span { color: white; font-size: 12px; }
+
+  /* Screen container */
+  .screens { flex: 1; position: relative; overflow: hidden; }
+  .screen {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    transform: translateX(30px);
+  }
+  .screen.active {
+    opacity: 1; pointer-events: all; transform: translateX(0);
+  }
+
+  /* Bottom nav */
+  .bottom-nav {
+    height: 72px;
+    background: white;
+    border-top: 1px solid #e0e8d8;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    flex-shrink: 0;
+    padding-bottom: 8px;
+  }
+  .nav-item {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    cursor: pointer; padding: 6px 12px; border-radius: 12px;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .nav-item:hover { background: rgba(106,191,53,0.1); }
+  .nav-item.active .nav-icon { color: var(--green-mid); }
+  .nav-item.active .nav-label { color: var(--green-mid); font-weight: 600; }
+  .nav-item.active::after {
+    content: '';
+    position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
+    width: 4px; height: 4px; background: var(--green-lime); border-radius: 50%;
+  }
+  .nav-icon { font-size: 22px; color: #aab8a2; transition: all 0.2s; }
+  .nav-label { font-size: 10px; color: #aab8a2; font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.5px; text-transform: uppercase; }
+  .nav-badge {
+    position: absolute; top: 2px; right: 8px;
+    background: #e74c3c; color: white;
+    font-size: 9px; width: 16px; height: 16px;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+  }
+
+  /* ==================== SCREEN: HOME ==================== */
+  #screen-home {
+    background: var(--white);
+    overflow-y: auto;
+  }
+  .home-header {
+    background: linear-gradient(160deg, var(--green-dark) 0%, var(--green-mid) 100%);
+    padding: 24px 24px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .home-header::before {
+    content: '';
+    position: absolute; top: -40px; right: -40px;
+    width: 200px; height: 200px;
+    background: rgba(168,216,0,0.15);
+    border-radius: 50%;
+  }
+  .home-header::after {
+    content: '';
+    position: absolute; bottom: -60px; left: -30px;
+    width: 160px; height: 160px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50%;
+  }
+  .home-greeting { color: rgba(255,255,255,0.7); font-size: 13px; margin-bottom: 2px; }
+  .home-name { color: white; font-size: 24px; font-weight: 700; font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.5px; }
+  .home-logo {
+    position: absolute; top: 18px; right: 24px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 28px; font-weight: 900; color: var(--green-lime);
+    letter-spacing: -1px;
+  }
+  .notif-pill {
+    margin-top: 16px; display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.15); backdrop-filter: blur(4px);
+    border-radius: 20px; padding: 6px 14px;
+    color: white; font-size: 12px; cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  .notif-pill .dot { width: 8px; height: 8px; background: var(--green-lime); border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.4);opacity:0.7} }
+
+  .home-content { padding: 0 16px 16px; }
+
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 0 10px;
+  }
+  .section-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px; font-weight: 700; color: var(--green-dark);
+    letter-spacing: 0.5px; text-transform: uppercase;
+  }
+  .see-all { font-size: 12px; color: var(--green-mid); font-weight: 600; cursor: pointer; }
+
+  /* Promo cards horizontal scroll */
+  .promo-scroll { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; margin: 0 -16px; padding-left: 16px; padding-right: 16px; scrollbar-width: none; }
+  .promo-scroll::-webkit-scrollbar { display: none; }
+  .promo-card {
+    flex-shrink: 0; width: 220px; border-radius: 16px; overflow: hidden;
+    cursor: pointer; position: relative;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+  }
+  .promo-card:hover { transform: scale(1.02); }
+  .promo-card .card-bg {
+    height: 130px;
+    display: flex; align-items: flex-end;
+    padding: 12px;
+    position: relative;
+  }
+  .promo-card.sale .card-bg { background: linear-gradient(135deg, var(--green-dark), var(--green-mid)); }
+  .promo-card.training .card-bg { background: linear-gradient(135deg, #2c5f1e, #4a9e2a); }
+  .promo-card.new .card-bg { background: linear-gradient(135deg, #1e4a2c, var(--green-light)); }
+  .promo-card .card-emoji { font-size: 40px; position: absolute; top: 12px; right: 12px; opacity: 0.9; }
+  .promo-card .card-badge {
+    background: var(--green-lime); color: var(--green-dark);
+    font-size: 10px; font-weight: 700; font-family: 'Barlow Condensed', sans-serif;
+    padding: 3px 8px; border-radius: 20px; letter-spacing: 1px; text-transform: uppercase;
+  }
+  .promo-card .card-body { background: white; padding: 12px; }
+  .promo-card .card-title { font-size: 14px; font-weight: 600; color: var(--green-dark); margin-bottom: 3px; }
+  .promo-card .card-sub { font-size: 11px; color: var(--text-muted); }
+
+  /* Quick access */
+  .quick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .quick-item {
+    background: white; border-radius: 14px; padding: 16px;
+    cursor: pointer; border: 1.5px solid #e0ead8;
+    transition: all 0.2s; display: flex; flex-direction: column; gap: 8px;
+  }
+  .quick-item:hover { border-color: var(--green-light); box-shadow: 0 4px 12px rgba(46,139,62,0.1); }
+  .quick-item .qi-icon { font-size: 28px; }
+  .quick-item .qi-label { font-size: 13px; font-weight: 600; color: var(--green-dark); font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.3px; }
+  .quick-item .qi-count { font-size: 11px; color: var(--text-muted); }
+  .quick-item .qi-dot { width: 8px; height: 8px; background: var(--green-lime); border-radius: 50%; }
+
+  /* ==================== SCREEN: AKCE ==================== */
+  #screen-akce { background: var(--white); overflow-y: auto; }
+  .page-header {
+    background: linear-gradient(160deg, var(--green-dark), var(--green-mid));
+    padding: 20px 24px 24px;
+  }
+  .page-title { color: white; font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 900; letter-spacing: 0.5px; }
+  .page-sub { color: rgba(255,255,255,0.65); font-size: 13px; margin-top: 2px; }
+
+  .filter-bar { display: flex; gap: 8px; padding: 14px 16px; overflow-x: auto; scrollbar-width: none; }
+  .filter-bar::-webkit-scrollbar { display: none; }
+  .filter-chip {
+    flex-shrink: 0; padding: 7px 14px; border-radius: 20px;
+    font-size: 12px; font-weight: 600; cursor: pointer;
+    font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.5px;
+    border: 1.5px solid #d4e4c8; color: var(--green-dark); background: white;
+    transition: all 0.2s;
+  }
+  .filter-chip.active { background: var(--green-mid); color: white; border-color: var(--green-mid); }
+
+  .akce-list { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 12px; }
+  .akce-card {
+    background: white; border-radius: 16px;
+    border: 1.5px solid #e0ead8;
+    overflow: hidden; cursor: pointer;
+    transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .akce-card:hover { border-color: var(--green-light); box-shadow: 0 6px 20px rgba(46,139,62,0.12); }
+  .akce-card-top {
+    height: 90px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px;
+    position: relative; overflow: hidden;
+  }
+  .akce-card-top.type-sale { background: linear-gradient(135deg, var(--green-dark), var(--green-mid)); }
+  .akce-card-top.type-training { background: linear-gradient(135deg, #2a5a1a, #4a9e2a); }
+  .akce-card-top.type-new { background: linear-gradient(135deg, var(--green-mid), var(--green-light)); }
+  .akce-card-top.type-event { background: linear-gradient(135deg, #1e3c28, #2e6e40); }
+  .akce-discount {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 42px; font-weight: 900; color: var(--green-lime);
+    line-height: 1;
+  }
+  .akce-card-top .card-emoji-big { font-size: 52px; opacity: 0.85; }
+  .akce-card-top .akce-type-badge {
+    position: absolute; top: 10px; left: 20px;
+    background: rgba(255,255,255,0.2); color: white;
+    font-size: 9px; font-weight: 700; font-family: 'Barlow Condensed', sans-serif;
+    padding: 3px 8px; border-radius: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+  }
+  .akce-card-body { padding: 14px 16px; }
+  .akce-card-title { font-size: 15px; font-weight: 700; color: var(--green-dark); margin-bottom: 4px; }
+  .akce-card-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-bottom: 10px; }
+  .akce-card-footer { display: flex; align-items: center; justify-content: space-between; }
+  .akce-date { font-size: 11px; color: var(--green-mid); font-weight: 600; display: flex; align-items: center; gap: 4px; }
+  .btn-detail {
+    background: var(--green-mid); color: white;
+    font-size: 11px; font-weight: 700; font-family: 'Barlow Condensed', sans-serif;
+    padding: 6px 14px; border-radius: 10px; cursor: pointer;
+    letter-spacing: 0.5px; text-transform: uppercase; border: none;
+    transition: background 0.2s;
+  }
+  .btn-detail:hover { background: var(--green-dark); }
+
+  /* ==================== SCREEN: NOTIFIKACE ==================== */
+  #screen-notif { background: var(--white); overflow-y: auto; }
+  .notif-list { padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+  .notif-item {
+    background: white; border-radius: 14px; padding: 14px 16px;
+    display: flex; gap: 12px; cursor: pointer;
+    border: 1.5px solid #e8ede3;
+    transition: all 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .notif-item.unread { border-color: var(--green-light); background: #f4fbee; }
+  .notif-item.unread::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px; background: var(--green-light);
+  }
+  .notif-icon-wrap {
+    width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .notif-icon-wrap.sale { background: #e8f5e0; }
+  .notif-icon-wrap.training { background: #e0f0e8; }
+  .notif-icon-wrap.new { background: #edfae0; }
+  .notif-text { flex: 1; }
+  .notif-title { font-size: 13px; font-weight: 600; color: var(--green-dark); margin-bottom: 3px; }
+  .notif-body { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+  .notif-time { font-size: 10px; color: #aab8a2; margin-top: 4px; }
+  .notif-unread-dot { width: 8px; height: 8px; background: var(--green-lime); border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+
+  /* ==================== SCREEN: PROFIL ==================== */
+  #screen-profil { background: var(--white); overflow-y: auto; }
+  .profil-header {
+    background: linear-gradient(160deg, var(--green-dark), var(--green-mid));
+    padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 12px;
+  }
+  .avatar {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: var(--green-lime); display: flex; align-items: center; justify-content: center;
+    font-size: 28px; font-family: 'Barlow Condensed', sans-serif; font-weight: 900;
+    color: var(--green-dark); border: 3px solid rgba(255,255,255,0.3);
+  }
+  .profil-name { color: white; font-size: 20px; font-weight: 700; font-family: 'Barlow Condensed', sans-serif; }
+  .profil-email { color: rgba(255,255,255,0.65); font-size: 12px; }
+  .profil-body { padding: 20px 16px; }
+  .profil-section { margin-bottom: 20px; }
+  .profil-section-title {
+    font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700;
+    color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase;
+    margin-bottom: 8px; padding-left: 4px;
+  }
+  .profil-item {
+    background: white; border: 1.5px solid #e0ead8; border-radius: 12px;
+    padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+    cursor: pointer; margin-bottom: 6px; transition: all 0.2s;
+  }
+  .profil-item:hover { border-color: var(--green-light); }
+  .profil-item-icon { font-size: 20px; width: 32px; text-align: center; }
+  .profil-item-label { flex: 1; font-size: 14px; font-weight: 500; color: var(--green-dark); }
+  .profil-item-arrow { color: #aab8a2; font-size: 14px; }
+  .toggle {
+    width: 44px; height: 24px; background: var(--green-mid); border-radius: 12px;
+    position: relative; cursor: pointer; transition: background 0.2s;
+  }
+  .toggle::after {
+    content: ''; position: absolute; top: 3px; right: 3px;
+    width: 18px; height: 18px; background: white; border-radius: 50%;
+    transition: transform 0.2s;
+  }
+  .toggle.off { background: #ccc; }
+  .toggle.off::after { transform: translateX(-20px); right: auto; left: 3px; }
+
+  /* Scrollable content fix */
+  .scroll-content { overflow-y: auto; flex: 1; }
+
+  /* Transition animation for cards */
+  .promo-card, .akce-card, .quick-item { animation: fadeIn 0.4s ease both; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Detail overlay */
+  .detail-overlay {
+    position: absolute; inset: 0; background: var(--white);
+    z-index: 100; display: flex; flex-direction: column;
+    transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+    overflow-y: auto;
+  }
+  .detail-overlay.open { transform: translateY(0); }
+  .detail-hero {
+    height: 200px; display: flex; align-items: flex-end;
+    padding: 24px; position: relative; overflow: hidden;
+  }
+  .detail-hero.sale { background: linear-gradient(135deg, var(--green-dark), var(--green-mid)); }
+  .detail-hero.training { background: linear-gradient(135deg, #2a5a1a, #4a9e2a); }
+  .detail-hero.new { background: linear-gradient(135deg, var(--green-mid), var(--green-light)); }
+  .detail-close {
+    position: absolute; top: 16px; right: 16px;
+    width: 36px; height: 36px; background: rgba(0,0,0,0.3);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 18px; cursor: pointer;
+    border: none;
+  }
+  .detail-emoji-big { font-size: 80px; position: absolute; top: 20px; right: 20px; opacity: 0.7; }
+  .detail-hero-title { color: white; font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 900; line-height: 1.1; position: relative; z-index: 1; }
+  .detail-body { padding: 24px 20px; }
+  .detail-pill { display: inline-block; background: #e8f5e0; color: var(--green-dark); font-size: 11px; font-weight: 700; font-family: 'Barlow Condensed', sans-serif; padding: 4px 12px; border-radius: 20px; margin-bottom: 16px; letter-spacing: 1px; text-transform: uppercase; }
+  .detail-desc { font-size: 14px; color: #444; line-height: 1.7; margin-bottom: 20px; }
+  .detail-info-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: flex-start; }
+  .detail-info-row .di-icon { font-size: 16px; width: 24px; flex-shrink: 0; }
+  .detail-info-row .di-text { font-size: 13px; color: var(--text-muted); }
+  .detail-info-row .di-text strong { color: var(--green-dark); }
+  .btn-primary {
+    display: block; width: 100%; padding: 16px;
+    background: linear-gradient(135deg, var(--green-mid), var(--green-dark));
+    color: white; font-size: 16px; font-weight: 700;
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: 1px; text-transform: uppercase;
+    border: none; border-radius: 14px; cursor: pointer; margin-top: 24px;
+    transition: opacity 0.2s;
+  }
+  .btn-primary:hover { opacity: 0.9; }
+
+  /* Desktop note */
+  .desktop-note {
+    color: #555; font-size: 12px; text-align: center; max-width: 420px;
+    line-height: 1.6; font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.5px;
+  }
+  .app-store-badges { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .badge {
+    background: #222; color: white; padding: 10px 20px; border-radius: 10px;
+    font-size: 13px; font-family: 'Barlow Condensed', sans-serif; font-weight: 600;
+    letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px;
+  }
+  .badge span { font-size: 18px; }
+</style>
+</head>
+<body>
+
+<p class="label">📱 Kili App — Interaktivní Prototyp</p>
+
+<div class="phone">
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="status-icons">
+      <span>📶</span><span>🔋</span>
+    </div>
+  </div>
+
+  <!-- SCREENS -->
+  <div class="screens" id="screens">
+
+    <!-- HOME -->
+    <div class="screen active" id="screen-home">
+      <div class="scroll-content">
+        <div class="home-header">
+          <div class="home-logo">KiLi</div>
+          <p class="home-greeting">Dobrý den,</p>
+          <p class="home-name">Jan Novák 👋</p>
+          <div class="notif-pill" onclick="switchTab('notif')">
+            <span class="dot"></span>
+            3 nové nabídky na vás čekají
+          </div>
+        </div>
+        <div class="home-content">
+          <div class="section-header">
+            <span class="section-title">🔥 Aktuální akce</span>
+            <span class="see-all" onclick="switchTab('akce')">Zobrazit vše →</span>
+          </div>
+          <div class="promo-scroll">
+            <div class="promo-card sale" onclick="openDetail('sale')">
+              <div class="card-bg">
+                <span class="card-emoji">🪵</span>
+                <span class="card-badge">Sleva −25 %</span>
+              </div>
+              <div class="card-body">
+                <div class="card-title">Řezivo & dřeviny</div>
+                <div class="card-sub">Do 31. 3. 2025</div>
+              </div>
+            </div>
+            <div class="promo-card training" onclick="openDetail('training')">
+              <div class="card-bg">
+                <span class="card-emoji">🎓</span>
+                <span class="card-badge">Školení</span>
+              </div>
+              <div class="card-body">
+                <div class="card-title">CNC technika pro truhláře</div>
+                <div class="card-sub">Praha, 15. 4. 2025</div>
+              </div>
+            </div>
+            <div class="promo-card new" onclick="openDetail('new')">
+              <div class="card-bg">
+                <span class="card-emoji">✨</span>
+                <span class="card-badge">Novinka</span>
+              </div>
+              <div class="card-body">
+                <div class="card-title">Nové laky Osmo 2025</div>
+                <div class="card-sub">Skladem od 1. 3.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-header">
+            <span class="section-title">⚡ Rychlý přístup</span>
+          </div>
+          <div class="quick-grid">
+            <div class="quick-item" onclick="openDetail('sale')">
+              <span class="qi-icon">🏷️</span>
+              <span class="qi-label">Slevy & akce</span>
+              <span class="qi-count">5 aktivních</span>
+            </div>
+            <div class="quick-item" onclick="openDetail('training')">
+              <span class="qi-icon">📚</span>
+              <span class="qi-label">Školení</span>
+              <span class="qi-count">2 nadcházející</span>
+            </div>
+            <div class="quick-item" onclick="openDetail('new')">
+              <span class="qi-icon">🆕</span>
+              <span class="qi-label">Novinky</span>
+              <span class="qi-count">8 produktů</span>
+            </div>
+            <div class="quick-item" onclick="switchTab('notif')">
+              <span class="qi-icon">🔔</span>
+              <span class="qi-label">Notifikace</span>
+              <div style="display:flex;align-items:center;gap:4px;"><span class="qi-dot"></span><span class="qi-count">3 nové</span></div>
+            </div>
+          </div>
+
+          <div style="height:20px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AKCE -->
+    <div class="screen" id="screen-akce">
+      <div class="page-header">
+        <div class="page-title">Akce & Nabídky</div>
+        <div class="page-sub">Aktuálně probíhající slevy, školení a novinky</div>
+      </div>
+      <div class="scroll-content">
+        <div class="filter-bar">
+          <div class="filter-chip active">Vše</div>
+          <div class="filter-chip">Slevy</div>
+          <div class="filter-chip">Školení</div>
+          <div class="filter-chip">Novinky</div>
+          <div class="filter-chip">Akce</div>
+        </div>
+        <div class="akce-list">
+          <div class="akce-card" onclick="openDetail('sale')">
+            <div class="akce-card-top type-sale">
+              <div><div class="akce-type-badge">SLEVA</div><div class="akce-discount">−25%</div></div>
+              <div class="card-emoji-big">🪵</div>
+            </div>
+            <div class="akce-card-body">
+              <div class="akce-card-title">Letní výprodej řeziva a dřevin</div>
+              <div class="akce-card-desc">Sleva 25 % na vybraný sortiment řeziva, masivního dřeva a dřevěných panelů. Platí při nákupu nad 5 000 Kč.</div>
+              <div class="akce-card-footer">
+                <span class="akce-date">📅 do 31. 3. 2025</span>
+                <button class="btn-detail" onclick="event.stopPropagation(); openDetail('sale')">Detail</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="akce-card" onclick="openDetail('training')">
+            <div class="akce-card-top type-training">
+              <div><div class="akce-type-badge">ŠKOLENÍ</div><div class="card-emoji-big" style="font-size:44px;position:relative;top:0;right:0;">🎓</div></div>
+              <div class="card-emoji-big">🔧</div>
+            </div>
+            <div class="akce-card-body">
+              <div class="akce-card-title">CNC technika pro truhláře — Praha</div>
+              <div class="akce-card-desc">Jednodenní intenzivní školení zaměřené na obsluhu CNC strojů, optimalizaci výroby a bezpečnost práce.</div>
+              <div class="akce-card-footer">
+                <span class="akce-date">📅 15. 4. 2025</span>
+                <button class="btn-detail" onclick="event.stopPropagation(); openDetail('training')">Přihlásit se</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="akce-card" onclick="openDetail('new')">
+            <div class="akce-card-top type-new">
+              <div><div class="akce-type-badge">NOVINKA</div><div style="font-size:36px;margin-top:8px;color:rgba(255,255,255,0.9);font-family:'Barlow Condensed',sans-serif;font-weight:900;">2025</div></div>
+              <div class="card-emoji-big">✨</div>
+            </div>
+            <div class="akce-card-body">
+              <div class="akce-card-title">Nová řada laků Osmo Polyx 2025</div>
+              <div class="akce-card-desc">Nové složení pro vyšší odolnost a kratší dobu schnutí. Dostupné v 8 odstínech, skladem od 1. března.</div>
+              <div class="akce-card-footer">
+                <span class="akce-date">📅 od 1. 3. 2025</span>
+                <button class="btn-detail" onclick="event.stopPropagation(); openDetail('new')">Detail</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="akce-card" onclick="openDetail('event')">
+            <div class="akce-card-top type-event">
+              <div><div class="akce-type-badge">UDÁLOST</div><div style="font-size:28px;margin-top:8px;color:var(--green-lime);font-family:'Barlow Condensed',sans-serif;font-weight:900;">Den<br>otevřených<br>dveří</div></div>
+              <div class="card-emoji-big">🏭</div>
+            </div>
+            <div class="akce-card-body">
+              <div class="akce-card-title">Den otevřených dveří Kili — Brno</div>
+              <div class="akce-card-desc">Navštivte náš sklad a showroom v Brně. Ukázky strojů, konzultace s odborníky, akční ceny přímo na místě.</div>
+              <div class="akce-card-footer">
+                <span class="akce-date">📅 22. 3. 2025</span>
+                <button class="btn-detail" onclick="event.stopPropagation(); openDetail('event')">Zúčastnit se</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTIFIKACE -->
+    <div class="screen" id="screen-notif">
+      <div class="page-header">
+        <div class="page-title">Notifikace</div>
+        <div class="page-sub">Vaše přijaté zprávy a upozornění</div>
+      </div>
+      <div class="scroll-content">
+        <div class="notif-list">
+          <div class="notif-item unread">
+            <div class="notif-icon-wrap sale">🏷️</div>
+            <div class="notif-text">
+              <div class="notif-title">Sleva −25 % na řezivo — pouze tento týden!</div>
+              <div class="notif-body">Využijte výprodej skladových zásob a ušetřete na masivním dřevu a dřevěných panelech.</div>
+              <div class="notif-time">Dnes, 8:30</div>
+            </div>
+            <div class="notif-unread-dot"></div>
+          </div>
+          <div class="notif-item unread">
+            <div class="notif-icon-wrap training">🎓</div>
+            <div class="notif-text">
+              <div class="notif-title">Pozvánka: Školení CNC technika</div>
+              <div class="notif-body">Přihlaste se na školení v Praze. Zbývají poslední 3 místa!</div>
+              <div class="notif-time">Včera, 14:15</div>
+            </div>
+            <div class="notif-unread-dot"></div>
+          </div>
+          <div class="notif-item unread">
+            <div class="notif-icon-wrap new">✨</div>
+            <div class="notif-text">
+              <div class="notif-title">Novinka: Laky Osmo Polyx 2025 jsou skladem</div>
+              <div class="notif-body">Nová řada s vylepšeným složením pro delší životnost povrchu je nyní dostupná.</div>
+              <div class="notif-time">Úterý, 10:00</div>
+            </div>
+            <div class="notif-unread-dot"></div>
+          </div>
+          <div class="notif-item">
+            <div class="notif-icon-wrap sale">🏭</div>
+            <div class="notif-text">
+              <div class="notif-title">Den otevřených dveří — Brno, 22. 3.</div>
+              <div class="notif-body">Připomínáme blížící se akci v našem brněnském skladu.</div>
+              <div class="notif-time">Pondělí, 9:00</div>
+            </div>
+          </div>
+          <div class="notif-item">
+            <div class="notif-icon-wrap training">📦</div>
+            <div class="notif-text">
+              <div class="notif-title">Váš oblíbený produkt je zpět</div>
+              <div class="notif-body">Brusné kotouče Mirka 125 mm jsou opět naskladněny.</div>
+              <div class="notif-time">12. 2. 2025</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFIL -->
+    <div class="screen" id="screen-profil">
+      <div class="scroll-content">
+        <div class="profil-header">
+          <div class="avatar">JN</div>
+          <div class="profil-name">Jan Novák</div>
+          <div class="profil-email">jan.novak@truhlarna.cz</div>
+        </div>
+        <div class="profil-body">
+          <div class="profil-section">
+            <div class="profil-section-title">Nastavení notifikací</div>
+            <div class="profil-item">
+              <span class="profil-item-icon">🏷️</span>
+              <span class="profil-item-label">Slevy a akce</span>
+              <div class="toggle" onclick="this.classList.toggle('off')"></div>
+            </div>
+            <div class="profil-item">
+              <span class="profil-item-icon">🎓</span>
+              <span class="profil-item-label">Školení a semináře</span>
+              <div class="toggle" onclick="this.classList.toggle('off')"></div>
+            </div>
+            <div class="profil-item">
+              <span class="profil-item-icon">✨</span>
+              <span class="profil-item-label">Novinky v sortimentu</span>
+              <div class="toggle" onclick="this.classList.toggle('off')"></div>
+            </div>
+            <div class="profil-item">
+              <span class="profil-item-icon">🏭</span>
+              <span class="profil-item-label">Události a akce</span>
+              <div class="toggle" onclick="this.classList.toggle('off')"></div>
+            </div>
+          </div>
+          <div class="profil-section">
+            <div class="profil-section-title">Účet</div>
+            <div class="profil-item">
+              <span class="profil-item-icon">👤</span>
+              <span class="profil-item-label">Osobní údaje</span>
+              <span class="profil-item-arrow">›</span>
+            </div>
+            <div class="profil-item">
+              <span class="profil-item-icon">🏢</span>
+              <span class="profil-item-label">Firemní profil</span>
+              <span class="profil-item-arrow">›</span>
+            </div>
+            <div class="profil-item">
+              <span class="profil-item-icon">📍</span>
+              <span class="profil-item-label">Pobočka v okolí</span>
+              <span class="profil-item-arrow">›</span>
+            </div>
+          </div>
+          <div class="profil-section">
+            <div class="profil-section-title">Aplikace</div>
+            <div class="profil-item">
+              <span class="profil-item-icon">❓</span>
+              <span class="profil-item-label">Nápověda a podpora</span>
+              <span class="profil-item-arrow">›</span>
+            </div>
+            <div class="profil-item" style="border-color:#fde8e8;">
+              <span class="profil-item-icon">🚪</span>
+              <span class="profil-item-label" style="color:#c0392b;">Odhlásit se</span>
+              <span class="profil-item-arrow" style="color:#c0392b;">›</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DETAIL OVERLAY -->
+    <div class="detail-overlay" id="detail-overlay">
+      <div class="detail-hero sale" id="detail-hero">
+        <button class="detail-close" onclick="closeDetail()">✕</button>
+        <div class="detail-emoji-big" id="detail-emoji">🪵</div>
+        <div class="detail-hero-title" id="detail-title">Letní výprodej<br>řeziva</div>
+      </div>
+      <div class="detail-body">
+        <div class="detail-pill" id="detail-badge">SLEVA −25 %</div>
+        <div class="detail-desc" id="detail-desc">Popis akce...</div>
+        <div id="detail-info"></div>
+        <button class="btn-primary" id="detail-cta">Zobrazit produkty</button>
+      </div>
+    </div>
+
+  </div><!-- /screens -->
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <div class="nav-item active" id="nav-home" onclick="switchTab('home')">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Domů</span>
+    </div>
+    <div class="nav-item" id="nav-akce" onclick="switchTab('akce')">
+      <span class="nav-icon">🏷️</span>
+      <span class="nav-label">Akce</span>
+    </div>
+    <div class="nav-item" id="nav-notif" onclick="switchTab('notif')">
+      <span class="nav-icon">🔔</span>
+      <span class="nav-label">Notifikace</span>
+      <div class="nav-badge">3</div>
+    </div>
+    <div class="nav-item" id="nav-profil" onclick="switchTab('profil')">
+      <span class="nav-icon">👤</span>
+      <span class="nav-label">Profil</span>
+    </div>
+  </div>
+</div>
+
+<div class="app-store-badges">
+  <div class="badge"><span>🍎</span> App Store</div>
+  <div class="badge"><span>▶</span> Google Play</div>
+</div>
+<p class="desktop-note">Interaktivní prototyp · Klikejte na karty, tlačítka a navigaci<br>Finální app by byla vyvinuta v React Native pro iOS & Android</p>
+
+<script>
+  const detailData = {
+    sale: {
+      heroClass: 'sale',
+      emoji: '🪵',
+      title: 'Letní výprodej\nřeziva a dřevin',
+      badge: 'SLEVA −25 %',
+      desc: 'Využijte jedinečnou příležitost a ušetřete 25 % na vybraném sortimentu řeziva, masivního dřeva a dřevěných panelů. Akce platí při nákupu nad 5 000 Kč bez DPH.',
+      info: [
+        { icon: '📅', label: 'Platnost', val: 'do 31. 3. 2025' },
+        { icon: '💰', label: 'Minimální nákup', val: '5 000 Kč bez DPH' },
+        { icon: '📦', label: 'Sortiment', val: 'Řezivo, masiv, panely, dýhy' },
+        { icon: '📍', label: 'Dostupnost', val: 'Všechny pobočky Kili' },
+      ],
+      cta: '🛒 Zobrazit zlevněné produkty'
+    },
+    training: {
+      heroClass: 'training',
+      emoji: '🎓',
+      title: 'Školení CNC\ntechnika',
+      badge: 'POZVÁNKA NA ŠKOLENÍ',
+      desc: 'Jednodenní intenzivní školení zaměřené na obsluhu a programování CNC strojů pro truhlářskou výrobu. Vede zkušený lektor s 15 lety praxe. Kapacita je omezena na 12 účastníků.',
+      info: [
+        { icon: '📅', label: 'Datum', val: '15. dubna 2025' },
+        { icon: '📍', label: 'Místo', val: 'Praha — Centrum školení Kili' },
+        { icon: '⏱️', label: 'Délka', val: '9:00 – 17:00 (8 hodin)' },
+        { icon: '💳', label: 'Cena', val: 'Zdarma pro zákazníky Kili' },
+        { icon: '👥', label: 'Zbývá míst', val: '3 z 12' },
+      ],
+      cta: '✅ Přihlásit se na školení'
+    },
+    new: {
+      heroClass: 'new',
+      emoji: '✨',
+      title: 'Nová řada laků\nOsmo Polyx 2025',
+      badge: 'NOVINKA',
+      desc: 'Osmo Polyx-Oil 2025 přináší vylepšené složení s kratší dobou schnutí (4 hodiny) a vyšší odolností proti vlhkosti. Disponuje certifikátem PEFC. Dostupný ve 12 odstínech.',
+      info: [
+        { icon: '📅', label: 'Dostupnost', val: 'Skladem od 1. 3. 2025' },
+        { icon: '🎨', label: 'Odstíny', val: '12 barevných variant' },
+        { icon: '⏱️', label: 'Schnutí', val: '4 hodiny (oproti 6 h u předchozí řady)' },
+        { icon: '🌿', label: 'Certifikace', val: 'PEFC, VOC Class A' },
+      ],
+      cta: '🔍 Prohlédnout produkty'
+    },
+    event: {
+      heroClass: 'sale',
+      emoji: '🏭',
+      title: 'Den otevřených\ndveří — Brno',
+      badge: 'UDÁLOST',
+      desc: 'Přijďte se podívat do našeho brněnského skladu a showroomu. Uvidíte ukázky nejnovějších strojů, dostanete odborné konzultace a využijete akčních cen platných pouze na místě.',
+      info: [
+        { icon: '📅', label: 'Datum', val: '22. března 2025' },
+        { icon: '📍', label: 'Místo', val: 'Brno-Slatina, Tuřanka 1222/34' },
+        { icon: '⏱️', label: 'Čas', val: '8:00 – 16:00' },
+        { icon: '🎁', label: 'Vstup', val: 'Zdarma, nutná registrace' },
+      ],
+      cta: '📌 Zaregistrovat se'
+    }
+  };
+
+  function switchTab(tab) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('screen-' + tab).classList.add('active');
+    document.getElementById('nav-' + tab).classList.add('active');
+    closeDetail();
+  }
+
+  function openDetail(type) {
+    const d = detailData[type];
+    const overlay = document.getElementById('detail-overlay');
+    const hero = document.getElementById('detail-hero');
+    hero.className = 'detail-hero ' + d.heroClass;
+    document.getElementById('detail-emoji').textContent = d.emoji;
+    document.getElementById('detail-title').innerHTML = d.title.replace('\n', '<br>');
+    document.getElementById('detail-badge').textContent = d.badge;
+    document.getElementById('detail-desc').textContent = d.desc;
+    document.getElementById('detail-cta').textContent = d.cta;
+    const infoEl = document.getElementById('detail-info');
+    infoEl.innerHTML = d.info.map(i =>
+      `<div class="detail-info-row"><span class="di-icon">${i.icon}</span><span class="di-text"><strong>${i.label}:</strong> ${i.val}</span></div>`
+    ).join('');
+    overlay.classList.add('open');
+  }
+
+  function closeDetail() {
+    document.getElementById('detail-overlay').classList.remove('open');
+  }
+
+  // Filter chips interactive
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>
