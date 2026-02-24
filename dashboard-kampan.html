@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kampaň JSD / Palubky / HSD — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f3ef;
+    --surface: #ffffff;
+    --surface2: #f0ede8;
+    --border: #ddd9d2;
+    --ink: #1a1815;
+    --muted: #8a8279;
+    --a: #c8510a;
+    --b: #1a6b4a;
+    --accent: #2a4fb5;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Bricolage Grotesque', sans-serif;
+    min-height: 100vh;
+    padding: 40px 36px;
+    max-width: 1300px;
+    margin: 0 auto;
+  }
+  header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 24px;
+    border-bottom: 3px solid var(--ink);
+    padding-bottom: 20px;
+    margin-bottom: 36px;
+  }
+  header h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -.04em; line-height: 1; }
+  header h1 em { font-style: normal; background: var(--ink); color: var(--bg); padding: 0 10px 2px; border-radius: 4px; margin-right: 6px; }
+  header h1 span { color: var(--muted); font-weight: 300; font-size: 1.7rem; }
+  .header-meta { text-align: right; font-family: 'JetBrains Mono', monospace; font-size: .72rem; color: var(--muted); line-height: 1.8; }
+  .header-meta strong { color: var(--ink); }
+  .sec { font-family: 'JetBrains Mono', monospace; font-size: .64rem; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 10px; margin-bottom: 16px; margin-top: 36px; }
+  .sec::after { content:''; flex:1; height:1px; background:var(--border); }
+  .products { display: flex; gap: 12px; margin-bottom: 32px; flex-wrap: wrap; }
+  .product-pill { border: 2px solid var(--ink); border-radius: 8px; padding: 10px 18px; }
+  .product-pill .name { font-weight: 800; font-size: .95rem; }
+  .product-pill .detail { font-family: 'JetBrains Mono', monospace; font-size: .68rem; color: var(--muted); margin-top: 2px; }
+  .product-pill .stock { font-family: 'JetBrains Mono', monospace; font-size: .65rem; margin-top: 6px; }
+  .pill-ok { border-color: var(--b); } .pill-ok .stock { color: var(--b); }
+  .pill-warn { border-color: var(--a); } .pill-warn .stock { color: var(--a); }
+
+  /* budget row */
+  .budget-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+  .b-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 20px 22px; }
+  .b-card .lbl { font-family: 'JetBrains Mono', monospace; font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .b-card .val { font-size: 1.9rem; font-weight: 800; letter-spacing: -.04em; line-height: 1; }
+  .b-card .sub { font-family: 'JetBrains Mono', monospace; font-size: .68rem; color: var(--muted); margin-top: 6px; }
+  .b-card.dark { background: var(--ink); color: var(--bg); }
+  .b-card.dark .lbl { color: rgba(255,255,255,.4); }
+  .b-card.dark .sub { color: rgba(255,255,255,.4); }
+
+  /* chart */
+  .chart-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 24px; }
+  .chart-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .chart-top h3 { font-size: .95rem; font-weight: 700; }
+  .legend { display: flex; gap: 16px; font-family: 'JetBrains Mono', monospace; font-size: .68rem; color: var(--muted); }
+  .leg { display: flex; align-items: center; gap: 6px; }
+  .leg-sq { width: 10px; height: 10px; border-radius: 2px; }
+  .months { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; align-items: end; }
+  .m-col { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .m-bars { display: flex; gap: 4px; align-items: flex-end; height: 90px; }
+  .bar { width: 18px; border-radius: 3px 3px 0 0; }
+  .bar-a { background: var(--a); }
+  .bar-b { background: var(--b); }
+  .m-total { font-family: 'JetBrains Mono', monospace; font-size: .7rem; font-weight: 700; }
+  .m-label { font-family: 'JetBrains Mono', monospace; font-size: .62rem; color: var(--muted); }
+  .m-note { font-size: .58rem; color: var(--muted); text-align: center; line-height: 1.3; max-width: 80px; }
+  .m-now .m-label { color: var(--accent); font-weight: 700; }
+  .m-now .m-total { color: var(--accent); }
+
+  /* channels */
+  .ch-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 24px; }
+  .ch-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+  .ch-table th { font-family: 'JetBrains Mono', monospace; font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); text-align: left; padding: 0 12px 10px 0; border-bottom: 2px solid var(--ink); font-weight: 500; }
+  .ch-table td { padding: 11px 12px 11px 0; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .ch-table tr:last-child td { border-bottom: none; }
+  .fa { color: var(--a); font-weight: 700; font-size: .75rem; }
+  .fb { color: var(--b); font-weight: 700; font-size: .75rem; }
+  .ch-val { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: .88rem; }
+  .ch-type { font-family: 'JetBrains Mono', monospace; font-size: .68rem; color: var(--muted); padding: 2px 8px; background: var(--surface2); border-radius: 4px; }
+  .bmini { height: 5px; background: var(--border); border-radius: 3px; width: 100px; overflow: hidden; margin-top: 5px; }
+  .bfill { height: 100%; border-radius: 3px; }
+  .tot td { border-top: 2px solid var(--ink) !important; font-weight: 800; padding-top: 14px !important; border-bottom: none !important; }
+
+  /* funnels */
+  .funnels { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .f-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 24px; }
+  .f-card h3 { font-size: .98rem; font-weight: 800; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .ftag { font-family: 'JetBrains Mono', monospace; font-size: .62rem; padding: 3px 8px; border-radius: 4px; font-weight: 500; }
+  .taga { background: rgba(200,81,10,.1); color: var(--a); }
+  .tagb { background: rgba(26,107,74,.1); color: var(--b); }
+  .f-goal { font-size: .78rem; color: var(--muted); margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+  .pl-label { font-family: 'JetBrains Mono', monospace; font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; margin: 14px 0 8px; }
+  .pl-label.ca { color: var(--a); }
+  .pl-label.cb { color: var(--b); }
+  .pipeline { display: flex; flex-direction: column; }
+  .ps { display: flex; align-items: flex-start; gap: 12px; padding: 8px 0; position: relative; }
+  .ps:not(:last-child)::after { content:''; position: absolute; left: 13px; top: 30px; bottom: 0; width: 1px; background: var(--border); }
+  .pn { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: .72rem; font-weight: 700; flex-shrink: 0; border: 2px solid var(--border); background: var(--bg); color: var(--muted); }
+  .pa .pn { border-color: var(--a); color: var(--a); background: rgba(200,81,10,.06); }
+  .pb .pn { border-color: var(--b); color: var(--b); background: rgba(26,107,74,.06); }
+  .pt { font-size: .82rem; padding-top: 3px; line-height: 1.35; }
+  .pt em { font-style: normal; font-family: 'JetBrains Mono', monospace; font-size: .68rem; color: var(--muted); display: block; margin-top: 2px; }
+  .phases { margin-top: 18px; border-top: 1px solid var(--border); padding-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .ph-row { display: flex; justify-content: space-between; align-items: center; font-size: .78rem; }
+  .ph-name { font-weight: 700; }
+  .ph-desc { font-family: 'JetBrains Mono', monospace; font-size: .66rem; color: var(--muted); margin-top: 2px; }
+  .ph-badge { font-family: 'JetBrains Mono', monospace; font-size: .62rem; padding: 3px 9px; border-radius: 4px; white-space: nowrap; }
+  .ph-on { background: rgba(42,79,181,.12); color: var(--accent); font-weight: 700; }
+  .ph-off { background: var(--surface2); color: var(--muted); }
+
+  /* KPI */
+  .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .kpi-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 24px; }
+  .kpi-card h3 { font-size: .95rem; font-weight: 800; margin-bottom: 16px; }
+  .kt { width: 100%; border-collapse: collapse; font-size: .78rem; }
+  .kt th { font-family: 'JetBrains Mono', monospace; font-size: .6rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); text-align: left; padding: 0 0 8px; border-bottom: 1px solid var(--border); font-weight: 500; }
+  .kt td { padding: 9px 0; border-bottom: 1px dashed var(--border); }
+  .kt tr:last-child td { border-bottom: none; }
+  .km { font-weight: 600; }
+  .ke { font-family: 'JetBrains Mono', monospace; font-size: .7rem; color: #d0ccc5; border-bottom: 1px dashed #e8e5e0; display: inline-block; width: 68px; text-align: center; }
+  .kfixed { font-family: 'JetBrains Mono', monospace; font-size: .7rem; color: var(--muted); }
+
+  footer { margin-top: 40px; border-top: 1px solid var(--border); padding-top: 16px; font-family: 'JetBrains Mono', monospace; font-size: .65rem; color: var(--muted); display: flex; justify-content: space-between; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1><em>kili.cz</em> Kampaň <span>JSD · Palubky · HSD</span></h1>
+    <div style="font-size:.82rem;color:var(--muted);margin-top:8px;">Kompletní strategie a pipeline — 6měsíční plán · Havlíčkův Brod</div>
+  </div>
+  <div class="header-meta">
+    <strong>Aktivní fáze: M1 + M2</strong><br>
+    Celkový budget: <strong>120 000 Kč</strong><br>
+    2 funnely · 5 kanálů<br>
+    Marketing · 2026
+  </div>
+</header>
+
+<!-- PRODUKTY -->
+<div class="sec">Produktová struktura</div>
+<div class="products">
+  <div class="product-pill pill-ok">
+    <div class="name">JSD 15 / 18 / 22</div>
+    <div class="detail">pero-drážka</div>
+    <div class="stock">✅ Sklad: pobočky + centrála</div>
+  </div>
+  <div class="product-pill pill-ok">
+    <div class="name">Palubky smrk AB</div>
+    <div class="detail">12 / 15 / 19</div>
+    <div class="stock">✅ Sklad: pobočky + centrála</div>
+  </div>
+  <div class="product-pill pill-warn">
+    <div class="name">HSD</div>
+    <div class="detail">projektový produkt</div>
+    <div class="stock">⚠️ Sklad: pouze centrála</div>
+  </div>
+</div>
+
+<!-- BUDGET -->
+<div class="sec">Rozpočet — přehled</div>
+<div class="budget-row">
+  <div class="b-card dark">
+    <div class="lbl">Celkový budget 6M</div>
+    <div class="val">120 000</div>
+    <div class="sub">Kč · M1 až M6</div>
+  </div>
+  <div class="b-card">
+    <div class="lbl">M1–M2 / měsíc</div>
+    <div class="val" style="color:var(--accent)">25 000</div>
+    <div class="sub">Kč · Start + testování</div>
+  </div>
+  <div class="b-card">
+    <div class="lbl">M3–M4 / měsíc</div>
+    <div class="val">20 000</div>
+    <div class="sub">Kč · Optimalizace</div>
+  </div>
+  <div class="b-card">
+    <div class="lbl">M5–M6 / měsíc</div>
+    <div class="val">15 000</div>
+    <div class="sub">Kč · Výkon + remarketing</div>
+  </div>
+</div>
+
+<!-- CHART -->
+<div class="chart-card">
+  <div class="chart-top">
+    <h3>Vývoj rozpočtu po měsících</h3>
+    <div class="legend">
+      <div class="leg"><div class="leg-sq" style="background:var(--a)"></div>Funnel A — Truhláři</div>
+      <div class="leg"><div class="leg-sq" style="background:var(--b)"></div>Funnel B — Stavební firmy</div>
+    </div>
+  </div>
+  <div class="months">
+    <div class="m-col m-now">
+      <div class="m-bars"><div class="bar bar-a" style="height:65px"></div><div class="bar bar-b" style="height:70px"></div></div>
+      <div class="m-total">25 000</div>
+      <div class="m-label">M1 ◀ NOW</div>
+      <div class="m-note">Start — sběr dat</div>
+    </div>
+    <div class="m-col m-now">
+      <div class="m-bars"><div class="bar bar-a" style="height:65px"></div><div class="bar bar-b" style="height:70px"></div></div>
+      <div class="m-total">25 000</div>
+      <div class="m-label">M2 ◀ NOW</div>
+      <div class="m-note">Optimalizace</div>
+    </div>
+    <div class="m-col">
+      <div class="m-bars"><div class="bar bar-a" style="height:54px"></div><div class="bar bar-b" style="height:54px"></div></div>
+      <div class="m-total">20 000</div>
+      <div class="m-label">M3</div>
+      <div class="m-note">Omezení slabých kanálů</div>
+    </div>
+    <div class="m-col">
+      <div class="m-bars"><div class="bar bar-a" style="height:54px"></div><div class="bar bar-b" style="height:54px"></div></div>
+      <div class="m-total">20 000</div>
+      <div class="m-label">M4</div>
+      <div class="m-note">Výkonový režim</div>
+    </div>
+    <div class="m-col">
+      <div class="m-bars"><div class="bar bar-a" style="height:43px"></div><div class="bar bar-b" style="height:38px"></div></div>
+      <div class="m-total">15 000</div>
+      <div class="m-label">M5</div>
+      <div class="m-note">Pouze výkon</div>
+    </div>
+    <div class="m-col">
+      <div class="m-bars"><div class="bar bar-a" style="height:43px"></div><div class="bar bar-b" style="height:38px"></div></div>
+      <div class="m-total">15 000</div>
+      <div class="m-label">M6</div>
+      <div class="m-note">Remarketing + stabilizace</div>
+    </div>
+  </div>
+</div>
+
+<!-- KANÁLY -->
+<div class="sec">Kanály — M1/M2 detail (25 000 Kč/měsíc)</div>
+<div class="ch-card">
+  <table class="ch-table">
+    <thead>
+      <tr>
+        <th>Funnel</th><th>Kanál</th><th>Budget / měs.</th><th>Typ kampaně</th><th style="min-width:120px">Podíl z 25 000 Kč</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="fa">A — Truhláři</span></td>
+        <td>🔍 Google Search</td>
+        <td><span class="ch-val" style="color:var(--a)">8 000 Kč</span></td>
+        <td><span class="ch-type">Výkon — aktivní poptávka</span></td>
+        <td><div class="bmini"><div class="bfill" style="width:32%;background:var(--a)"></div></div></td>
+      </tr>
+      <tr>
+        <td><span class="fa">A — Truhláři</span></td>
+        <td>📘 Facebook remarketing</td>
+        <td><span class="ch-val" style="color:var(--a)">4 000 Kč</span></td>
+        <td><span class="ch-type">Připomenutí</span></td>
+        <td><div class="bmini"><div class="bfill" style="width:16%;background:var(--a)"></div></div></td>
+      </tr>
+      <tr>
+        <td><span class="fb">B — Stavební</span></td>
+        <td>🔍 Google Search</td>
+        <td><span class="ch-val" style="color:var(--b)">7 000 Kč</span></td>
+        <td><span class="ch-type">Aktivní poptávka</span></td>
+        <td><div class="bmini"><div class="bfill" style="width:28%;background:var(--b)"></div></div></td>
+      </tr>
+      <tr>
+        <td><span class="fb">B — Stavební</span></td>
+        <td>💼 LinkedIn Ads</td>
+        <td><span class="ch-val" style="color:var(--b)">4 000 Kč</span></td>
+        <td><span class="ch-type">Lead generation</span></td>
+        <td><div class="bmini"><div class="bfill" style="width:16%;background:var(--b)"></div></div></td>
+      </tr>
+      <tr>
+        <td><span class="fb">B — Stavební</span></td>
+        <td>📘 Facebook Ads</td>
+        <td><span class="ch-val" style="color:var(--b)">2 000 Kč</span></td>
+        <td><span class="ch-type">Povědomí</span></td>
+        <td><div class="bmini"><div class="bfill" style="width:8%;background:var(--b)"></div></div></td>
+      </tr>
+      <tr class="tot">
+        <td colspan="2">CELKEM</td>
+        <td><span class="ch-val">25 000 Kč</span></td>
+        <td></td><td></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- FUNNELY -->
+<div class="sec">Funnely — pipeline a fáze kampaně</div>
+<div class="funnels">
+
+  <!-- A -->
+  <div class="f-card">
+    <h3>Funnel A <span class="ftag taga">Stávající zákazníci — Truhláři</span></h3>
+    <div class="f-goal">🎯 Cíl: Zvýšení obratu, vytěžení skladovosti JSD + Palubky, navýšení průměrné objednávky</div>
+    <div class="pl-label ca">Pipeline — kroky</div>
+    <div class="pipeline">
+      <div class="ps pa"><div class="pn">1</div><div class="pt">Google Search reklama<em>lokální cílení — klíčová slova JSD, palubky, pero-drážka HB</em></div></div>
+      <div class="ps pa"><div class="pn">2</div><div class="pt">Kliknutí na produktovou stránku</div></div>
+      <div class="ps pa"><div class="pn">3</div><div class="pt">Zobrazení skladovosti na pobočce<em>JSD + Palubky dostupné lokálně</em></div></div>
+      <div class="ps pa"><div class="pn">4</div><div class="pt">Vložení do košíku</div></div>
+      <div class="ps pa"><div class="pn">5</div><div class="pt">Dokončení objednávky</div></div>
+      <div class="ps pa"><div class="pn">6</div><div class="pt">Remarketing — připomenutí nedokončené objednávky<em>Facebook remarketing 4 000 Kč/měs.</em></div></div>
+      <div class="ps pa"><div class="pn">7</div><div class="pt">Newsletter podpora každé 4 týdny</div></div>
+      <div class="ps pa"><div class="pn">8</div><div class="pt">Reporting ROAS + optimalizace každý měsíc</div></div>
+    </div>
+    <div class="phases">
+      <div class="ph-row">
+        <div><div class="ph-name">M1–M2</div><div class="ph-desc">Plný rozsah klíčových slov, testování</div></div>
+        <span class="ph-badge ph-on">▶ AKTIVNÍ</span>
+      </div>
+      <div class="ph-row">
+        <div><div class="ph-name">M3–M4</div><div class="ph-desc">Vypnutí nevýkonných slov, navýšení na výkonné</div></div>
+        <span class="ph-badge ph-off">nadcházející</span>
+      </div>
+      <div class="ph-row">
+        <div><div class="ph-name">M5–M6</div><div class="ph-desc">Pouze remarketing a nejvýkonnější sestavy</div></div>
+        <span class="ph-badge ph-off">nadcházející</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- B -->
+  <div class="f-card">
+    <h3>Funnel B <span class="ftag tagb">Nový segment — Stavební firmy</span></h3>
+    <div class="f-goal">🎯 Cíl: Získání nových firem a generování leadů — HSD projektové dodávky</div>
+
+    <div class="pl-label cb">Pipeline 1 — Online lead generation</div>
+    <div class="pipeline">
+      <div class="ps pb"><div class="pn">1</div><div class="pt">Google / LinkedIn / Facebook reklama<em>7 000 + 4 000 + 2 000 Kč/měs.</em></div></div>
+      <div class="ps pb"><div class="pn">2</div><div class="pt">Návštěva landing page</div></div>
+      <div class="ps pb"><div class="pn">3</div><div class="pt">Vyplnění formuláře</div></div>
+      <div class="ps pb"><div class="pn">4</div><div class="pt">Automatický zápis do CRM</div></div>
+      <div class="ps pb"><div class="pn">5</div><div class="pt">OZ kontakt do 48 hodin ❗</div></div>
+      <div class="ps pb"><div class="pn">6</div><div class="pt">Nabídka → Uzavření obchodu</div></div>
+    </div>
+
+    <div class="pl-label cb" style="margin-top:16px;">Pipeline 2 — Hybrid (online + přímý kontakt)</div>
+    <div class="pipeline">
+      <div class="ps pb"><div class="pn">1</div><div class="pt">Reklama buduje povědomí</div></div>
+      <div class="ps pb"><div class="pn">2</div><div class="pt">OZ aktivně oslovuje firmu</div></div>
+      <div class="ps pb"><div class="pn">3</div><div class="pt">Firma navštíví landing page → Schůzka</div></div>
+      <div class="ps pb"><div class="pn">4</div><div class="pt">Cenová nabídka → Projektové dodávky HSD</div></div>
+    </div>
+
+    <div class="phases">
+      <div class="ph-row">
+        <div><div class="ph-name">M1–M2</div><div class="ph-desc">Test trhu, sledování ceny za lead</div></div>
+        <span class="ph-badge ph-on">▶ AKTIVNÍ</span>
+      </div>
+      <div class="ph-row">
+        <div><div class="ph-name">M3–M4</div><div class="ph-desc">Optimalizace kanálů dle kvality leadu</div></div>
+        <span class="ph-badge ph-off">nadcházející</span>
+      </div>
+      <div class="ph-row">
+        <div><div class="ph-name">M5–M6</div><div class="ph-desc">Výkonový režim, remarketing návštěvníků LP</div></div>
+        <span class="ph-badge ph-off">nadcházející</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- KPI -->
+<div class="sec">KPI — sledování výkonnosti (vyplňovat měsíčně)</div>
+<div class="kpi-grid">
+
+  <div class="kpi-card">
+    <h3 style="color:var(--a)">Funnel A — Truhláři</h3>
+    <table class="kt">
+      <thead><tr><th>Metrika</th><th>M1</th><th>M2</th><th>M3</th><th>M4</th><th>M5</th><th>M6</th></tr></thead>
+      <tbody>
+        <tr><td class="km">Investice (Kč)</td><td class="kfixed">12 000</td><td class="kfixed">12 000</td><td class="kfixed">10 000</td><td class="kfixed">10 000</td><td class="kfixed">8 000</td><td class="kfixed">8 000</td></tr>
+        <tr><td class="km">Kliknutí</td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td></tr>
+        <tr><td class="km">Objednávky</td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td></tr>
+        <tr><td class="km">Obrat (Kč)</td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td></tr>
+        <tr><td class="km">ROAS</td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td></tr>
+        <tr><td class="km">Marže (%)</td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:12px;font-size:.67rem;font-family:'JetBrains Mono',monospace;color:var(--muted);">ROAS = Obrat ÷ Investice · Optimalizace každý měsíc</div>
+  </div>
+
+  <div class="kpi-card">
+    <h3 style="color:var(--b)">Funnel B — Stavební firmy</h3>
+    <table class="kt">
+      <thead><tr><th>Metrika</th><th>M1</th><th>M2</th><th>M3</th><th>M4</th><th>M5</th><th>M6</th></tr></thead>
+      <tbody>
+        <tr><td class="km">Investice (Kč)</td><td class="kfixed">13 000</td><td class="kfixed">13 000</td><td class="kfixed">10 000</td><td class="kfixed">10 000</td><td class="kfixed">7 000</td><td class="kfixed">7 000</td></tr>
+        <tr><td class="km">Cena za lead (Kč)</td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td></tr>
+        <tr><td class="km">Počet leadů</td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td></tr>
+        <tr><td class="km">Schůzky</td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td></tr>
+        <tr><td class="km">Nabídky odeslány</td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td></tr>
+        <tr><td class="km">Uzavřené obchody</td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td></tr>
+        <tr><td class="km">Obrat (Kč)</td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td><td><span class="ke">—</span></td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:12px;font-size:.67rem;font-family:'JetBrains Mono',monospace;color:var(--muted);">OZ kontakt do 48 h od leadu · CRM zápis povinný po každém kontaktu</div>
+  </div>
+
+</div>
+
+<footer>
+  <span>kili.cz · Kampaň JSD / Palubky / HSD · Havlíčkův Brod · 6měsíční plán</span>
+  <span>Zdroj: Kampan_JSD_Palubky_HSD_Popis.docx + Rozpocet.xlsx · Marketing 2026</span>
+</footer>
+
+</body>
+</html>
