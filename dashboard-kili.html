@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Obchodní přehled — kili.cz | únor 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F7F5F1;
+    --bg2: #EFECEA;
+    --surface: #FFFFFF;
+    --surface2: #F4F2EE;
+    --border: #E2DED8;
+    --border-light: #EDE9E4;
+    --ink: #1E1A16;
+    --ink-mid: #4A4540;
+    --ink-soft: #7A746E;
+    --ink-muted: #A8A29C;
+    --teal: #2A7F6F;
+    --teal-light: #E8F4F1;
+    --teal-mid: #3D9B88;
+    --amber: #B86A10;
+    --amber-light: #FDF3E7;
+    --amber-mid: #D4831A;
+    --sage: #4A6741;
+    --sage-light: #EDF3EC;
+    --rose: #9B3A3A;
+    --rose-light: #FAF0EE;
+    --slate: #3A5470;
+    --slate-light: #EDF2F7;
+    --shadow-sm: 0 1px 3px rgba(30,26,22,0.06), 0 1px 2px rgba(30,26,22,0.04);
+    --shadow: 0 4px 16px rgba(30,26,22,0.08), 0 2px 6px rgba(30,26,22,0.04);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  .wrapper {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* HEADER */
+  .header {
+    padding: 56px 0 44px;
+    margin-bottom: 48px;
+    border-bottom: 1px solid var(--border);
+    opacity: 0;
+    animation: fadeUp 0.7s ease forwards;
+  }
+  .header-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--teal);
+    font-weight: 600;
+    margin-bottom: 18px;
+  }
+  .header-eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 20px; height: 1.5px;
+    background: var(--teal);
+    border-radius: 2px;
+  }
+  .header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(34px, 4.5vw, 54px);
+    line-height: 1.12;
+    color: var(--ink);
+    font-weight: 400;
+    margin-bottom: 14px;
+    letter-spacing: -0.5px;
+  }
+  .header h1 em { color: var(--teal); font-style: italic; }
+  .header-meta {
+    color: var(--ink-soft);
+    font-size: 13.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .header-meta .dot { color: var(--ink-muted); }
+
+  /* INFO BANNER */
+  .info-banner {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--teal);
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin-bottom: 48px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    box-shadow: var(--shadow-sm);
+    opacity: 0;
+    animation: fadeUp 0.7s ease 0.08s forwards;
+  }
+  .info-icon { font-size: 18px; margin-top: 1px; flex-shrink: 0; }
+  .info-banner p { font-size: 13.5px; line-height: 1.7; color: var(--ink-mid); }
+  .info-banner strong { color: var(--ink); font-weight: 600; }
+
+  /* SECTION TITLE */
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 23px;
+    font-weight: 400;
+    color: var(--ink);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    letter-spacing: -0.2px;
+  }
+  .section-title .ico { font-size: 18px; }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+    margin-left: 8px;
+  }
+
+  /* KPI GRID */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 48px;
+    opacity: 0;
+    animation: fadeUp 0.7s ease 0.12s forwards;
+  }
+  @media (max-width: 768px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    padding: 22px 18px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .kpi-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--kpi-color, var(--slate));
+    border-radius: 12px 12px 0 0;
+  }
+  .kpi-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 40px;
+    font-weight: 400;
+    color: var(--kpi-color, var(--slate));
+    line-height: 1;
+    margin-bottom: 8px;
+    display: block;
+    letter-spacing: -1px;
+  }
+  .kpi-label { font-size: 11.5px; color: var(--ink-soft); line-height: 1.45; }
+  .kpi-teal { --kpi-color: var(--teal); }
+  .kpi-sage { --kpi-color: var(--sage); }
+  .kpi-amber { --kpi-color: var(--amber); }
+  .kpi-slate { --kpi-color: var(--slate); }
+
+  /* TWO COL */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 48px;
+  }
+  @media (max-width: 680px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* CARD */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    padding: 26px 22px;
+    box-shadow: var(--shadow-sm);
+    opacity: 0;
+    animation: fadeUp 0.7s ease var(--delay, 0.15s) forwards;
+  }
+  .card-title {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    font-weight: 600;
+    margin-bottom: 18px;
+  }
+
+  /* BAR CHART */
+  .bar-list { display: flex; flex-direction: column; gap: 14px; }
+  .bar-meta { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; }
+  .bar-name { color: var(--ink-mid); }
+  .bar-val { color: var(--ink); font-weight: 600; }
+  .bar-track { height: 5px; background: var(--bg2); border-radius: 4px; overflow: hidden; }
+  .bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: var(--fill-color, var(--slate));
+    width: 0;
+    transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  /* DONUT */
+  .donut-wrap { display: flex; align-items: center; gap: 24px; }
+  .donut-legend { flex: 1; }
+  .donut-legend-item { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; margin-bottom: 14px; }
+  .donut-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+  .donut-item-label { color: var(--ink-mid); font-weight: 500; line-height: 1.3; }
+  .donut-item-val { color: var(--ink-soft); font-size: 11.5px; margin-top: 1px; }
+
+  /* FUNNEL */
+  .funnel-section { margin-bottom: 48px; opacity: 0; animation: fadeUp 0.7s ease 0.25s forwards; }
+  .funnel-steps { display: flex; align-items: stretch; }
+  @media (max-width: 580px) { .funnel-steps { flex-direction: column; } }
+  .funnel-step {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border-light);
+    padding: 18px 10px;
+    position: relative;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+  }
+  .funnel-step:not(:last-child) { border-right: none; }
+  .funnel-step:first-child { border-radius: 10px 0 0 10px; }
+  .funnel-step:last-child { border-radius: 0 10px 10px 0; }
+  .funnel-step:not(:last-child)::after {
+    content: '›';
+    position: absolute;
+    right: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: var(--ink-muted);
+    z-index: 2;
+  }
+  .funnel-step.active { background: var(--teal-light); border-color: rgba(42,127,111,0.2); }
+  .funnel-step.pending { background: var(--amber-light); border-color: rgba(184,106,16,0.2); }
+  .funnel-num { font-size: 9px; color: var(--ink-muted); margin-bottom: 5px; letter-spacing: 1px; font-weight: 600; }
+  .funnel-ico { font-size: 20px; margin-bottom: 5px; display: block; }
+  .funnel-name { font-size: 10.5px; color: var(--ink-mid); font-weight: 500; line-height: 1.35; }
+  .funnel-status { font-size: 9.5px; margin-top: 5px; font-weight: 600; letter-spacing: 0.3px; }
+  .funnel-status.ok { color: var(--teal); }
+  .funnel-status.soon { color: var(--amber); }
+  .funnel-status.dim { color: var(--ink-muted); }
+
+  /* TABLE */
+  .leads-section { margin-bottom: 48px; opacity: 0; animation: fadeUp 0.7s ease 0.28s forwards; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 10.5px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  thead th:first-child { border-radius: 10px 0 0 0; }
+  thead th:last-child { border-radius: 0 10px 0 0; }
+  tbody tr { border-bottom: 1px solid var(--border-light); transition: background 0.15s; }
+  tbody tr:hover { background: var(--surface2); }
+  tbody td { padding: 11px 14px; color: var(--ink-mid); vertical-align: middle; }
+  .badge {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge-multi { background: var(--amber-light); color: var(--amber); border: 1px solid rgba(184,106,16,0.2); }
+  .badge-single { background: var(--slate-light); color: var(--slate); border: 1px solid rgba(58,84,112,0.15); }
+  .badge-open { background: var(--bg2); color: var(--ink-muted); border: 1px solid var(--border); }
+  .priority-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 7px; vertical-align: middle; }
+  .dot-high { background: var(--amber-mid); }
+  .dot-mid { background: var(--slate); }
+  .dot-low { background: var(--ink-muted); }
+
+  /* CTA */
+  .cta-section {
+    background: var(--surface);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    padding: 28px 24px;
+    margin-bottom: 48px;
+    box-shadow: var(--shadow-sm);
+    opacity: 0;
+    animation: fadeUp 0.7s ease 0.32s forwards;
+  }
+  .cta-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: var(--ink);
+    margin-bottom: 18px;
+    font-weight: 400;
+  }
+  .cta-list { display: flex; flex-direction: column; gap: 10px; }
+  .cta-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 13px 16px;
+    background: var(--bg);
+    border-radius: 8px;
+    border-left: 3px solid var(--item-color, var(--teal));
+  }
+  .cta-priority {
+    font-size: 10.5px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--item-color, var(--teal));
+    font-weight: 700;
+    flex-shrink: 0;
+    width: 80px;
+    padding-top: 1px;
+  }
+  .cta-text { font-size: 13.5px; line-height: 1.55; color: var(--ink-mid); }
+
+  /* FB PANEL */
+  .fb-panel {
+    background: linear-gradient(135deg, var(--teal-light), #F0F7F5);
+    border: 1px solid rgba(42,127,111,0.15);
+    border-radius: 12px;
+    padding: 28px 24px;
+    margin-bottom: 48px;
+    box-shadow: var(--shadow-sm);
+    opacity: 0;
+    animation: fadeUp 0.7s ease 0.36s forwards;
+  }
+  .fb-panel p { font-size: 13.5px; line-height: 1.72; color: var(--ink-mid); margin-bottom: 14px; }
+  .fb-panel p strong { color: var(--ink); }
+  .fb-quote {
+    background: var(--surface);
+    border: 1px solid rgba(42,127,111,0.12);
+    border-left: 3px solid var(--teal);
+    border-radius: 8px;
+    padding: 16px 18px;
+    font-size: 13.5px;
+    line-height: 1.68;
+    color: var(--ink-mid);
+    font-style: italic;
+  }
+
+  /* NOTICE */
+  .notice {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    line-height: 1.6;
+    margin-top: 14px;
+  }
+  .notice-teal { background: var(--teal-light); color: var(--teal); border: 1px solid rgba(42,127,111,0.15); }
+  .notice-amber { background: var(--amber-light); color: var(--amber-mid); border: 1px solid rgba(184,106,16,0.15); }
+
+  /* WEEKLY CHART */
+  .weekly-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 5px;
+    height: 80px;
+    padding-bottom: 20px;
+    position: relative;
+  }
+  .weekly-chart::after {
+    content: '';
+    position: absolute;
+    bottom: 19px; left: 0; right: 0;
+    height: 1px;
+    background: var(--border);
+  }
+  .week-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .week-bars { display: flex; gap: 2px; align-items: flex-end; height: 60px; }
+  .week-bar { width: 9px; border-radius: 2px 2px 0 0; min-height: 2px; transition: height 1s cubic-bezier(0.4,0,0.2,1); }
+  .week-label { font-size: 9px; color: var(--ink-muted); font-weight: 500; }
+  .chart-legend { display: flex; gap: 16px; margin-top: 10px; }
+  .chart-legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--ink-soft); }
+  .chart-legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+  /* FOOTER */
+  .footer {
+    border-top: 1px solid var(--border);
+    padding-top: 22px;
+    font-size: 11.5px;
+    color: var(--ink-muted);
+    line-height: 1.75;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header class="header">
+    <div class="header-eyebrow">Obchodní přehled · kili.cz</div>
+    <h1>Marketingový výkon<br><em>únor 2026</em></h1>
+    <div class="header-meta">
+      25. 1. – 24. 2. 2026
+      <span class="dot">·</span>
+      Google Ads · Lead Tracking · Kontakty HB
+      <span class="dot">·</span>
+      Připraveno: 24. 2. 2026
+    </div>
+  </header>
+
+  <div class="info-banner">
+    <div class="info-icon">💡</div>
+    <p>Google Ads, billboard i lead tracking fungují a přivádějí zákazníky na web. Tento přehled ukazuje, kde jsou příležitosti k vytěžení a jak zájem zákazníků dotáhnout do konce. Rádi bychom se s vámi domluvili na dalším postupu.</p>
+  </div>
+
+  <div class="section-title"><span class="ico">📊</span> Klíčová čísla</div>
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-slate">
+      <span class="kpi-value" data-count="686">0</span>
+      <div class="kpi-label">Kliknutí<br>Google Ads (8 dní)</div>
+    </div>
+    <div class="kpi-card kpi-sage">
+      <span class="kpi-value" style="font-size:32px" data-count="179" data-cpc="1">0</span>
+      <div class="kpi-label">Průměrná cena<br>za klik (CPC)</div>
+    </div>
+    <div class="kpi-card kpi-amber">
+      <span class="kpi-value" data-count="22">0</span>
+      <div class="kpi-label">Noví akvizicní<br>leady na webu</div>
+    </div>
+    <div class="kpi-card kpi-teal">
+      <span class="kpi-value" data-count="14">0</span>
+      <div class="kpi-label">Unikátních nových<br>firem z HB</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card" style="--delay:0.18s">
+      <div class="card-title">Návštěvy webu — typ zákazníka</div>
+      <div class="donut-wrap">
+        <svg width="106" height="106" viewBox="0 0 106 106" style="flex-shrink:0">
+          <circle cx="53" cy="53" r="38" fill="none" stroke="#EDE9E4" stroke-width="13"/>
+          <circle cx="53" cy="53" r="38" fill="none" stroke="#2A7F6F" stroke-width="13"
+            stroke-dasharray="0 238.8" stroke-dashoffset="59.7"
+            id="donut-aktivni" style="transition: stroke-dasharray 1.2s cubic-bezier(0.4,0,0.2,1)"/>
+          <circle cx="53" cy="53" r="38" fill="none" stroke="#D4831A" stroke-width="13"
+            stroke-dasharray="0 238.8" stroke-dashoffset="59.7"
+            id="donut-akvizicni" style="transition: stroke-dasharray 1.2s cubic-bezier(0.4,0,0.2,1) 0.1s"/>
+          <text x="53" y="49" text-anchor="middle" fill="#1E1A16" font-family="Playfair Display,serif" font-size="20">65</text>
+          <text x="53" y="63" text-anchor="middle" fill="#A8A29C" font-family="Plus Jakarta Sans,sans-serif" font-size="8.5" font-weight="500">návštěv</text>
+        </svg>
+        <div class="donut-legend">
+          <div class="donut-legend-item">
+            <div class="donut-dot" style="background:var(--teal)"></div>
+            <div>
+              <div class="donut-item-label">Aktivní zákazníci</div>
+              <div class="donut-item-val">43 návštěv · 3 firmy</div>
+            </div>
+          </div>
+          <div class="donut-legend-item">
+            <div class="donut-dot" style="background:var(--amber)"></div>
+            <div>
+              <div class="donut-item-label">Noví akvizicní</div>
+              <div class="donut-item-val">22 návštěv · 14 firem</div>
+            </div>
+          </div>
+          <div style="margin-top:4px; font-size:11.5px; color:var(--ink-soft); line-height:1.55">
+            Akvizicní leady narůstají od spuštění Google Ads (16. 2.).
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="--delay:0.22s">
+      <div class="card-title">Vývoj návštěvnosti — po týdnech</div>
+      <div class="weekly-chart" id="weeklyChart"></div>
+      <div class="chart-legend">
+        <div class="chart-legend-item"><div class="chart-legend-dot" style="background:var(--teal)"></div>Aktivní zákazníci</div>
+        <div class="chart-legend-item"><div class="chart-legend-dot" style="background:var(--amber-mid)"></div>Noví akvizicní</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="funnel-section">
+    <div class="section-title"><span class="ico">🧠</span> Jak zákazník vnímá firmu — cesta k rozhodnutí</div>
+    <div class="funnel-steps">
+      <div class="funnel-step active">
+        <div class="funnel-num">KROK 1</div>
+        <span class="funnel-ico">🪧</span>
+        <div class="funnel-name">Vidí billboard u končící firmy</div>
+        <div class="funnel-status ok">✓ Spuštěno</div>
+      </div>
+      <div class="funnel-step active">
+        <div class="funnel-num">KROK 2</div>
+        <span class="funnel-ico">🎯</span>
+        <div class="funnel-name">Vidí Google Ads online</div>
+        <div class="funnel-status ok">✓ 686 kliknutí</div>
+      </div>
+      <div class="funnel-step active">
+        <div class="funnel-num">KROK 3</div>
+        <span class="funnel-ico">💻</span>
+        <div class="funnel-name">Přečte si web kili.cz</div>
+        <div class="funnel-status ok">✓ 65 firem</div>
+      </div>
+      <div class="funnel-step pending">
+        <div class="funnel-num">KROK 4</div>
+        <span class="funnel-ico">📱</span>
+        <div class="funnel-name">Vidí FB reklamu znovu</div>
+        <div class="funnel-status soon">→ K domluvě</div>
+      </div>
+      <div class="funnel-step pending">
+        <div class="funnel-num">KROK 5</div>
+        <span class="funnel-ico">📞</span>
+        <div class="funnel-name">Obchodník zavolá</div>
+        <div class="funnel-status soon">→ Příležitost</div>
+      </div>
+      <div class="funnel-step">
+        <div class="funnel-num">KROK 6</div>
+        <span class="funnel-ico">🤝</span>
+        <div class="funnel-name">Zákazník říká ANO</div>
+        <div class="funnel-status dim">Cíl</div>
+      </div>
+    </div>
+    <div style="margin-top:10px; font-size:12.5px; color:var(--ink-soft); font-style:italic; padding-left:2px">
+      Zákazník, který firmu vidí třikrát, si ji zapamatuje a důvěřuje jí. Kroky 1–3 jsou rozjeté.
+    </div>
+  </div>
+
+  <div class="leads-section">
+    <div class="section-title"><span class="ico">🏢</span> Noví potenciální zákazníci — únor 2026</div>
+    <div class="card" style="--delay:0.26s; padding:0; overflow:hidden">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Zájem</th>
+              <th>Firma</th>
+              <th>Návštěvy webu</th>
+              <th>Telefon</th>
+              <th>Poznámka v CRM</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><span class="priority-dot dot-high"></span>Opakovaný</td><td>FEROPLAST spol. s r.o.</td><td><span class="badge badge-multi">2× (6.2 + 13.2)</span></td><td>569 626 607</td><td><span class="badge badge-open">—</span></td></tr>
+            <tr><td><span class="priority-dot dot-high"></span>Opakovaný</td><td>PALI, s.r.o.</td><td><span class="badge badge-multi">2× (10.2 + 13.2)</span></td><td>569 622 095</td><td><span class="badge badge-open">—</span></td></tr>
+            <tr><td><span class="priority-dot dot-high"></span>Opakovaný</td><td>SCHÄFER - SUDEX s.r.o.</td><td><span class="badge badge-multi">2× (11.2 + 17.2)</span></td><td>569 711 291</td><td><span class="badge badge-open">—</span></td></tr>
+            <tr><td><span class="priority-dot dot-high"></span>Opakovaný</td><td>Psychiatrická nemocnice HB</td><td><span class="badge badge-multi">2× (16.2)</span></td><td>569 478 111</td><td><span class="badge badge-open">—</span></td></tr>
+            <tr><td><span class="priority-dot dot-high"></span>Opakovaný</td><td>ZŠ a MŠ Herálec</td><td><span class="badge badge-multi">4× (9–19.2)</span></td><td>—</td><td><span class="badge badge-open">—</span></td></tr>
+            <tr><td><span class="priority-dot dot-mid"></span>Jednorázový</td><td>MPA servis s.r.o.</td><td><span class="badge badge-single">1× (10.2)</span></td><td>601 386 745</td><td><span class="badge badge-open">—</span></td></tr>
+            <tr><td><span class="priority-dot dot-mid"></span>Jednorázový</td><td>Futaba Czech, s.r.o.</td><td><span class="badge badge-single">1× (22.2)</span></td><td>569 496 400</td><td><span class="badge badge-open">—</span></td></tr>
+            <tr><td><span class="priority-dot dot-mid"></span>Jednorázový</td><td>Amylon, a.s.</td><td><span class="badge badge-single">1× (2.2)</span></td><td>569 430 382</td><td><span class="badge badge-open">—</span></td></tr>
+            <tr><td><span class="priority-dot dot-mid"></span>Jednorázový</td><td>Hostinec U Palánů s.r.o.</td><td><span class="badge badge-single">1× (24.2)</span></td><td>569 428 392</td><td><span class="badge badge-open">—</span></td></tr>
+            <tr><td><span class="priority-dot dot-mid"></span>Jednorázový</td><td>Střední škola Chotěboř</td><td><span class="badge badge-single">1× (24.2)</span></td><td>731 348 326</td><td><span class="badge badge-open">—</span></td></tr>
+            <tr><td><span class="priority-dot dot-low"></span>Jednorázový</td><td>OSystem s.r.o.</td><td><span class="badge badge-single">1× (3.2)</span></td><td>—</td><td><span class="badge badge-open">—</span></td></tr>
+            <tr><td><span class="priority-dot dot-low"></span>Jednorázový</td><td>Město Světlá nad Sázavou</td><td><span class="badge badge-single">1× (4.2)</span></td><td>—</td><td><span class="badge badge-open">—</span></td></tr>
+            <tr><td><span class="priority-dot dot-low"></span>Jednorázový</td><td>Obec Bojiště</td><td><span class="badge badge-single">1× (6.2)</span></td><td>569 726 414</td><td><span class="badge badge-open">—</span></td></tr>
+            <tr><td><span class="priority-dot dot-low"></span>Opakovaný</td><td>DVPM Slavíkov</td><td><span class="badge badge-multi">2× (7–8.2)</span></td><td>—</td><td><span class="badge badge-open">—</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div style="margin-top:10px; font-size:12px; color:var(--ink-soft); padding-left:2px">
+      Firmy s opakovanou návštěvou projevily zvýšený zájem — jsou ideálními kandidáty pro první oslovení.
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card" style="--delay:0.3s">
+      <div class="card-title">Google Ads — výkonnost (16.–23. 2.)</div>
+      <div class="bar-list">
+        <div class="bar-item">
+          <div class="bar-meta"><span class="bar-name">Celková kliknutí</span><span class="bar-val">686</span></div>
+          <div class="bar-track"><div class="bar-fill" style="--fill-color: var(--slate)" data-width="95%"></div></div>
+        </div>
+        <div class="bar-item">
+          <div class="bar-meta"><span class="bar-name">CPC efektivita</span><span class="bar-val">1,79 Kč / klik</span></div>
+          <div class="bar-track"><div class="bar-fill" style="--fill-color: var(--sage)" data-width="98%"></div></div>
+        </div>
+        <div class="bar-item">
+          <div class="bar-meta"><span class="bar-name">Celkový výdaj</span><span class="bar-val">1 230 Kč</span></div>
+          <div class="bar-track"><div class="bar-fill" style="--fill-color: var(--amber)" data-width="20%"></div></div>
+        </div>
+      </div>
+      <div class="notice notice-teal">
+        ✓ Kampaň LP HB Převzetí je aktivní. Výrazný nárůst kliknutí od 20. 2. — ideální okamžik pro navazující obchodní aktivitu.
+      </div>
+    </div>
+
+    <div class="card" style="--delay:0.34s">
+      <div class="card-title">Truhláři + Podlaháři HB — databáze</div>
+      <div style="margin-bottom:18px">
+        <div style="font-size:38px; font-family:'Playfair Display',serif; color:var(--amber); line-height:1; letter-spacing:-1px">106</div>
+        <div style="font-size:12px; color:var(--ink-soft); margin-top:4px">kontaktů předáno obchodníkovi 13. 2. 2026</div>
+      </div>
+      <div class="bar-list">
+        <div class="bar-item">
+          <div class="bar-meta"><span class="bar-name">Firmy, které navštívily web</span><span class="bar-val">sledujeme</span></div>
+          <div class="bar-track"><div class="bar-fill" style="--fill-color: var(--teal)" data-width="2%"></div></div>
+        </div>
+      </div>
+      <div class="notice notice-amber">
+        Zatím žádná z těchto firem web nenavštívila — kampaň teprve nabíhá, nebo by pomohl přímý telefonický kontakt.
+      </div>
+    </div>
+  </div>
+
+  <div class="cta-section">
+    <div class="cta-title">Navrhované další kroky</div>
+    <div class="cta-list">
+      <div class="cta-item" style="--item-color:var(--amber)">
+        <div class="cta-priority">Priorita 1</div>
+        <div class="cta-text">Oslovit firmy s opakovanou návštěvou — FEROPLAST, PALI, SCHÄFER, Psychiatrická nemocnice HB, ZŠ Herálec. Projevily zájem, jsou připraveny na rozhovor.</div>
+      </div>
+      <div class="cta-item" style="--item-color:var(--amber)">
+        <div class="cta-priority">Priorita 2</div>
+        <div class="cta-text">Postupně oslovit zbývajících 9 nových firem z přehledu a projít databázi 106 truhláří a podlahářů z HB.</div>
+      </div>
+      <div class="cta-item" style="--item-color:var(--teal)">
+        <div class="cta-priority">Průběžně</div>
+        <div class="cta-text">Zaznamenávat každý kontakt do systému — datum, jméno, výsledek. Pomůže to plánovat follow-up a neztratit žádnou příležitost.</div>
+      </div>
+      <div class="cta-item" style="--item-color:var(--slate)">
+        <div class="cta-priority">K domluvě</div>
+        <div class="cta-text">Rozhodnutí o spuštění FB reklamy — rádi bychom se na to sešli a prodiskutovali načasování a nastavení.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fb-panel">
+    <div class="section-title"><span class="ico">📱</span> Ke spuštění Facebook reklamy</div>
+    <p>Marketingový základ běží — billboard, Google Ads i lead tracking jsou aktivní. <strong>Facebook reklama by zákazníka zasáhla ještě jednou</strong> — ve chvíli, kdy scrolluje telefon doma večer.</p>
+    <p>Zákazník, který firmu vidí na billboardu, pak u Google Ads a pak ještě na Facebooku, si říká: <em>"Třikrát jsem je viděl — asi jsou dobří, zavolám jim."</em> Tím se z neznámé firmy stává důvěryhodná volba.</p>
+    <div class="fb-quote">
+      Rádi bychom se s vámi domluvili na dalším postupu. FB reklama by krásně doplnila to, co už běží — spolu bychom se domluvili na správném načasování, aby obchodní tým mohl zájem zákazníků plně vytěžit. Mohli bychom si na to domluvit krátkou schůzku?
+    </div>
+  </div>
+
+  <div class="footer">
+    Datový podklad: Google Ads (16.–23. 2. 2026) · Lead tracking kili.cz (25. 1.–24. 2. 2026) · Export kontaktů Merkur (4. 2. 2026)
+    <br>Analyzováno: 65 návštěv webu od 17 firem · 106 kontaktů truhláří a podlahářů · 686 kliknutí z Google Ads za 8 dní
+  </div>
+
+</div>
+<script>
+function animateCount(el) {
+  const end = parseInt(el.dataset.count || 0);
+  if (isNaN(end)) return;
+  const isCpc = el.dataset.cpc === '1';
+  const duration = 1100;
+  const start = performance.now();
+  function update(now) {
+    const p = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    const cur = Math.round(ease * end);
+    el.textContent = isCpc ? (cur / 100).toFixed(2).replace('.', ',') + ' Kč' : cur.toLocaleString('cs-CZ');
+    if (p < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+function animateDonut() {
+  const total = 238.8;
+  const aktivni = (43 / 65) * total;
+  const akvizicni = (22 / 65) * total;
+  const gap = 4;
+  const a = document.getElementById('donut-aktivni');
+  const b = document.getElementById('donut-akvizicni');
+  if (a) { a.style.strokeDasharray = `${aktivni - gap} ${total - (aktivni - gap)}`; a.style.strokeDashoffset = '59.7'; }
+  if (b) { b.style.strokeDasharray = `${akvizicni - gap} ${total - (akvizicni - gap)}`; b.style.strokeDashoffset = String(59.7 - (aktivni - gap)); }
+}
+
+const weekData = [
+  { label: 'T5', a: 3, b: 0 }, { label: 'T6', a: 9, b: 6 },
+  { label: 'T7', a: 13, b: 7 }, { label: 'T8', a: 14, b: 5 }, { label: 'T9', a: 4, b: 2 }
+];
+const maxVal = Math.max(...weekData.map(w => w.a + w.b));
+
+function buildWeeklyChart() {
+  const chart = document.getElementById('weeklyChart');
+  if (!chart) return;
+  weekData.forEach(w => {
+    const col = document.createElement('div'); col.className = 'week-col';
+    const bars = document.createElement('div'); bars.className = 'week-bars';
+    [{ c: '#2A7F6F', v: w.a }, { c: '#D4831A', v: w.b }].forEach(({ c, v }) => {
+      const bar = document.createElement('div'); bar.className = 'week-bar';
+      bar.style.background = c; bar.style.height = '0px';
+      bar.dataset.target = Math.round((v / maxVal) * 55);
+      bars.appendChild(bar);
+    });
+    const lbl = document.createElement('div'); lbl.className = 'week-label'; lbl.textContent = w.label;
+    col.appendChild(bars); col.appendChild(lbl); chart.appendChild(col);
+  });
+}
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.querySelectorAll('[data-count]').forEach(animateCount);
+      entry.target.querySelectorAll('.bar-fill').forEach(el => { el.style.width = el.dataset.width || '0%'; });
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.2 });
+
+document.addEventListener('DOMContentLoaded', () => {
+  buildWeeklyChart();
+  const kpiGrid = document.querySelector('.kpi-grid');
+  if (kpiGrid) observer.observe(kpiGrid);
+  document.querySelectorAll('.card').forEach(c => observer.observe(c));
+  setTimeout(animateDonut, 350);
+  setTimeout(() => {
+    document.querySelectorAll('.week-bar').forEach(el => {
+      el.style.height = (parseInt(el.dataset.target || 0)) + 'px';
+    });
+  }, 550);
+});
+</script>
+</body>
+</html>
