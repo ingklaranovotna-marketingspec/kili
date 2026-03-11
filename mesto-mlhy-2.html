@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Město mlhy</title>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1a1610;--paper:#f0e8d8;--aged:#c8b896;--aged2:#a89878;--amber:#c8841a;--green2:#3a7a3a;--red2:#c03030}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--ink);color:var(--paper);font-family:'Courier Prime','Courier New',monospace;min-height:100vh;overflow-x:hidden}
+.rain{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.drop{position:absolute;top:-20px;width:1px;background:linear-gradient(transparent,rgba(180,160,120,.12));animation:fall linear infinite}
+@keyframes fall{to{transform:translateY(110vh)}}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.wrap{max-width:680px;margin:0 auto;padding:0 20px;position:relative;z-index:2}
+
+/* screens */
+.scr{display:none}
+@keyframes fu{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.scr.on{display:block;animation:fu .4s ease both}
+
+/* TITLE */
+#s-title{min-height:100vh;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px;position:relative;z-index:2}
+#s-title.on{display:flex}
+.eyebrow{font-size:.65rem;letter-spacing:.4em;color:var(--aged2);text-transform:uppercase;margin-bottom:28px}
+.big-t{font-family:'Special Elite',serif;font-size:clamp(3rem,9vw,5.5rem);line-height:.95;text-shadow:4px 4px 0 #2a1f10;margin-bottom:10px;animation:flicker 9s ease 4s infinite}
+@keyframes flicker{0%,91%,95%,100%{opacity:1}92%,94%{opacity:.25}93%{opacity:1}}
+.big-sub{font-size:1rem;color:var(--aged);font-style:italic;margin-bottom:40px}
+.div-line{width:100px;height:1px;background:var(--aged2);margin:0 auto 40px}
+.intro-p{max-width:440px;color:var(--aged);font-size:.85rem;line-height:1.9;margin-bottom:44px;font-style:italic}
+.btn-main{font-family:'Special Elite',serif;font-size:1rem;background:none;border:2px solid var(--aged2);color:var(--paper);padding:14px 48px;cursor:pointer;letter-spacing:.15em;text-transform:uppercase;transition:all .3s;position:relative;overflow:hidden;z-index:0}
+.btn-main::before{content:'';position:absolute;inset:0;background:var(--aged2);transform:translateX(-100%);transition:.3s;z-index:-1}
+.btn-main:hover{color:var(--ink)}.btn-main:hover::before{transform:translateX(0)}
+.pips{display:flex;gap:8px;margin-top:48px;justify-content:center}
+.pip{width:9px;height:9px;border:1px solid var(--aged2);border-radius:50%;transition:.3s}
+.pip.on{background:var(--amber);border-color:var(--amber)}
+
+/* BOARD */
+#s-board{padding:48px 0 80px}
+.board-h{font-family:'Special Elite',serif;font-size:2.2rem;text-align:center;margin-bottom:6px}
+.board-sub{text-align:center;color:var(--aged);font-style:italic;margin-bottom:32px}
+.rep-box{background:rgba(200,184,150,.05);border:1px solid rgba(200,184,150,.15);padding:16px 20px;margin-bottom:28px}
+.rep-lbl{font-size:.6rem;letter-spacing:.25em;color:var(--aged2);text-transform:uppercase;margin-bottom:12px}
+.rep-row{display:flex;align-items:center;gap:10px;margin-bottom:5px}
+.rep-nm{font-size:.78rem;color:var(--aged);width:90px;flex-shrink:0}
+.rep-tr{flex:1;height:3px;background:rgba(200,184,150,.15)}
+.rep-fi{height:100%;background:var(--amber);transition:width .6s}
+.rep-vl{font-size:.7rem;color:var(--amber);width:28px;text-align:right;flex-shrink:0}
+.card{display:flex;align-items:center;gap:14px;border:1px solid rgba(200,184,150,.18);padding:14px 18px;margin-bottom:8px;cursor:pointer;transition:all .2s;position:relative}
+.card:hover{border-color:var(--aged2);background:rgba(200,184,150,.04)}
+.card.done{border-color:rgba(42,90,42,.4);background:rgba(42,90,42,.04)}
+.card.locked{opacity:.3;cursor:default;pointer-events:none}
+.cnum{font-family:'Special Elite',serif;font-size:1.7rem;color:var(--aged2);width:36px;text-align:center;flex-shrink:0}
+.card.done .cnum{color:var(--green2)}
+.cbody{flex:1}
+.cstat{font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;margin-bottom:3px}
+.card:not(.done):not(.locked) .cstat{color:var(--amber)}
+.card.done .cstat{color:var(--green2)}.card.locked .cstat{color:var(--aged2)}
+.ctit{font-family:'Special Elite',serif;font-size:1rem}
+.cdesc{font-size:.75rem;color:var(--aged2);font-style:italic;margin-top:2px}
+
+/* CASE */
+#s-case{padding:40px 0 80px}
+.back-btn{background:none;border:none;color:var(--aged2);cursor:pointer;font-family:'Courier Prime',monospace;font-size:.82rem;padding:0;margin-bottom:24px;letter-spacing:.05em}
+.back-btn:hover{color:var(--paper)}
+.stamp{display:inline-block;border:3px solid var(--red2);color:var(--red2);font-size:.68rem;letter-spacing:.3em;padding:3px 10px;transform:rotate(-2deg);font-weight:700;margin-bottom:14px}
+.stamp.cl{border-color:var(--green2);color:var(--green2)}
+.cnum2{font-size:.62rem;color:var(--aged2);letter-spacing:.3em;text-transform:uppercase}
+.case-h{font-family:'Special Elite',serif;font-size:clamp(1.5rem,4vw,2.2rem);margin:6px 0 3px;line-height:1.1}
+.case-sub{color:var(--aged);font-style:italic;font-size:.88rem;margin-bottom:24px}
+.scene{background:rgba(240,232,216,.05);border:1px solid rgba(200,184,150,.18);border-left:3px solid var(--amber);padding:20px 24px;margin-bottom:20px;position:relative}
+.scene::before{content:attr(data-loc);position:absolute;top:-10px;left:16px;background:var(--ink);padding:0 8px;font-size:.58rem;letter-spacing:.25em;color:var(--amber);text-transform:uppercase}
+.scene-txt{font-size:.88rem;line-height:2;color:var(--aged)}
+.chal{background:rgba(200,132,26,.06);border:1px solid rgba(200,132,26,.2);padding:12px 16px;margin-bottom:24px;font-size:.78rem;color:var(--amber);font-style:italic}
+.ch-h{font-size:.62rem;letter-spacing:.3em;color:var(--aged2);text-transform:uppercase;margin-bottom:12px}
+.choice{display:block;width:100%;text-align:left;background:none;border:1px solid rgba(200,184,150,.18);color:var(--aged);font-family:'Courier Prime',monospace;font-size:.85rem;padding:13px 16px;margin-bottom:8px;cursor:pointer;transition:all .2s;line-height:1.5}
+.choice:not(:disabled):hover{border-color:var(--aged2);color:var(--paper);background:rgba(200,184,150,.05);padding-left:22px}
+.choice.sg{border-color:var(--green2);color:var(--paper);background:rgba(42,90,42,.12)}
+.choice.so{border-color:var(--amber);color:var(--paper);background:rgba(200,132,26,.1)}
+.choice.sb{border-color:var(--red2);color:var(--paper);background:rgba(139,32,32,.1)}
+.oc{border:1px solid;padding:18px 22px;margin:16px 0;animation:fu .4s ease}
+.oc.good{border-color:var(--green2);background:rgba(42,90,42,.1)}
+.oc.ok{border-color:var(--amber);background:rgba(200,132,26,.08)}
+.oc.bad{border-color:var(--red2);background:rgba(139,32,32,.1)}
+.oc-lbl{font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;margin-bottom:8px}
+.oc.good .oc-lbl{color:var(--green2)}.oc.ok .oc-lbl{color:var(--amber)}.oc.bad .oc-lbl{color:var(--red2)}
+.oc-txt{font-size:.85rem;line-height:1.9;color:var(--aged)}
+.oc-ins{margin-top:12px;padding-top:12px;border-top:1px solid rgba(200,184,150,.18);font-size:.8rem;color:var(--paper);font-style:italic;line-height:1.7}
+.div2{border:none;border-top:1px solid rgba(200,184,150,.18);margin:20px 0}
+.inp-lbl{font-size:.62rem;letter-spacing:.28em;color:var(--aged2);text-transform:uppercase;margin-bottom:8px}
+.inp-p{font-size:.78rem;color:var(--aged2);font-style:italic;margin-bottom:10px}
+textarea{width:100%;background:rgba(240,232,216,.04);border:1px solid rgba(200,184,150,.22);border-bottom:2px solid var(--aged2);color:var(--paper);font-family:'Courier Prime',monospace;font-size:.88rem;line-height:1.8;padding:13px 15px;resize:vertical;min-height:90px;transition:border-color .2s}
+textarea:focus{outline:none;border-color:var(--aged)}
+textarea::placeholder{color:var(--aged2);font-style:italic}
+.btn-go{font-family:'Courier Prime',monospace;font-size:.85rem;background:none;border:1px solid var(--aged2);color:var(--paper);padding:11px 30px;cursor:pointer;letter-spacing:.1em;text-transform:uppercase;transition:all .25s;margin-top:12px}
+.btn-go:hover{background:var(--aged2);color:var(--ink)}
+.btn-go:disabled{opacity:.3;cursor:default}
+.btn-am{border-color:var(--amber);color:var(--amber)}
+.btn-am:hover{background:var(--amber);color:var(--ink)}
+
+/* DEBRIEF */
+#s-debrief{padding:40px 0 80px}
+.db-stamp{display:inline-block;border:3px solid var(--green2);color:var(--green2);font-family:'Special Elite',serif;font-size:1.6rem;letter-spacing:.15em;padding:5px 14px;transform:rotate(-1deg);margin-bottom:14px}
+.db-h{font-family:'Special Elite',serif;font-size:1.9rem;margin-bottom:4px}
+.db-sub{color:var(--aged);font-style:italic;margin-bottom:32px}
+.sc-row{display:flex;justify-content:space-around;border:1px solid rgba(200,184,150,.18);padding:18px;margin-bottom:20px}
+.sc-item{text-align:center}
+.sc-big{font-family:'Special Elite',serif;font-size:2.2rem}
+.sc-big.good{color:var(--green2)}.sc-big.ok{color:var(--amber)}.sc-big.bad{color:var(--red2)}
+.sc-sm{font-size:.58rem;color:var(--aged2);letter-spacing:.18em;text-transform:uppercase}
+.db-sec{border:1px solid rgba(200,184,150,.18);padding:18px 22px;margin-bottom:14px}
+.db-sl{font-size:.58rem;letter-spacing:.28em;color:var(--amber);text-transform:uppercase;margin-bottom:10px}
+.db-tx{font-size:.85rem;line-height:1.9;color:var(--aged)}
+.db-pr{font-size:.88rem;color:var(--paper);font-style:italic;border-left:2px solid var(--amber);padding-left:13px;margin-top:10px;line-height:1.7}
+.btn-row{display:flex;gap:10px;margin-top:24px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+
+<div class="rain" id="rain"></div>
+
+<!-- TITLE -->
+<div id="s-title" class="scr on">
+  <p class="eyebrow">Noir &middot; Profesn&iacute; RPG</p>
+  <h1 class="big-t">M&#282;STO<br>MLHY</h1>
+  <p class="big-sub">Deset p&#345;&iacute;pad&#367;. Jedno m&#283;sto. Jeden detektiv.</p>
+  <div class="div-line"></div>
+  <p class="intro-p">Pracuje&#353; v kancel&#225;&#345;i v zadn&iacute;m traktu. Za oknem pr&#353;&iacute;. Ka&#382;d&yacute; den p&#345;ijde n&#283;kdo s probl&eacute;mem. Tv&#367;j &uacute;kol je prost&yacute;: vy&#345;e&#353; to. Jak to vy&#345;e&#353;&iacute;&#353; &mdash; z&aacute;le&#382;&iacute; jen na tob&#283;.</p>
+  <button class="btn-main" id="btn-open">Otev&#345;&iacute;t spisovnu</button>
+  <div class="pips" id="pips"></div>
+</div>
+
+<!-- BOARD -->
+<div id="s-board" class="scr">
+  <div class="wrap">
+    <h2 class="board-h">N&#225;st&#283;nka p&#345;&iacute;pad&#367;</h2>
+    <p class="board-sub">Vyber p&#345;&iacute;pad k otev&#345;en&iacute;</p>
+    <div class="rep-box" id="rep-box"></div>
+    <div id="cards"></div>
+    <div style="text-align:center;margin-top:28px">
+      <button class="btn-go" id="btn-back-title">&#8592; Zp&#283;t na &uacute;vod</button>
+    </div>
+  </div>
+</div>
+
+<!-- CASE -->
+<div id="s-case" class="scr">
+  <div class="wrap">
+    <button class="back-btn" id="btn-back-board">&#8592; N&#225;st&#283;nka</button>
+    <div id="case-body"></div>
+  </div>
+</div>
+
+<!-- DEBRIEF -->
+<div id="s-debrief" class="scr">
+  <div class="wrap" id="deb-body"></div>
+</div>
+
+<!-- DATA as JSON — safe from quote escaping issues -->
+<script type="application/json" id="cases-data">
+[
+  {"id":1,"title":"Stín bez jména","tagline":"Případ profesní identity","skill":"Profesní ukotvení","rep":"autorita","loc":"Kancelář, úterý ráno",
+   "intro":"Právě ses usadil za stůl, když se otevřely dveře. Nový klient — Martin Beneš, ředitel firmy, unavený pohled, uvolněná kravata. Posadil se bez pozvání.\n\nSlyšel jsem, že jste dobrý, řekl. Potřebuji vědět, s kým mám tu čest. Co vlastně děláte? Proč by mě mělo zajímat, co si myslíte?",
+   "challenge":"Martin tě testuje. Chce vědět, jestli jsi člověk, jehož názor má váhu — nebo jen další konzultant s plnými ústy prázdných slov.",
+   "choices":[
+     {"t":"Pomáhám lidem jako vy najít jasnost v situacích, kde je nejasno příliš drahé. Konvertuji chaos na rozhodnutelné kroky.","q":"good","o":"Beneš přestal brnkat na pero. Přikývl pomalu. To se mi líbí. Přesně to potřebuji. Získal jsi jeho pozornost i respekt.","i":"Profesní hodnota se nepopisuje seznamem aktivit. Popisuje se dopadem. Co se děje lépe, když děláš svou práci dobře?"},
+     {"t":"Jsem konzultant se zkušenostmi v různých oblastech. Pracuji s různými klienty na různých projektech...","q":"ok","o":"Beneš se trochu odtáhl. Hmm. Konzultant. Slovo znělo jako třetí odrůda sýru — existuje, ale nikdo ji aktivně nehledá.","i":"Neurčitost nepůsobí skromně — působí prázdně. Silné představení pojmenovává konkrétní hodnotu, ne jen kategorii práce."},
+     {"t":"No, dělám vlastně hodně věcí. Záleží, co potřebujete. Mohl byste mi říct víc o své situaci?","q":"bad","o":"Beneš se podíval na hodinky. Možná se ozvu. Vstal. Ztratil jsi ho dřív, než jsi ho získal.","i":"Odvracet otázku o sobě otázkou na klienta je únik. Dřív než se zeptáš, musíš říct dost, aby druhý věděl proč ti vůbec odpovídat."}
+   ],
+   "inputPrompt":"Jak bys popsal/a svůj vlastní profesní přínos v jedné větě? Ne aktivity — dopad.",
+   "inputPh":"Pomáhám / zajišťuji / vytvářím...",
+   "lesson":"Profesní identita není to, co děláš — je to to, co se díky tobě děje jinak. Lidé nevěnují pozornost popisu aktivit. Věnují ji popisu výsledků.",
+   "principle":"Říct co děláš je slabé. Říct co se díky tobě děje lépe — to je profesní autorita.",
+   "apply":"Připrav si profesní představení do čtyř vět: Oblast práce, Problém který řeším, Co se díky tomu mění, Co z toho plyne pro druhého."
+  },
+  {"id":2,"title":"Ztracené priority","tagline":"Případ přeplněného stolu","skill":"Cíle a priority","rep":"přehled","loc":"Zasedací místnost, čtvrtek",
+   "intro":"Klientka — Jana Horáková, project managerka — přišla s tlustou složkou a výrazem člověka, který dvě noci nespal.\n\nMám třináct projektů, dvacet emailů bez odpovědi a šéf chce přehled do pátku, vybalila to bez pozdravu. Nevím, co dělat první. Nevím, co je vlastně důležité. Prostě nevím.",
+   "challenge":"Jana není líná ani neschopná. Je ztracená v množství bez struktury. Potřebuje pomoct vidět, ne jen cítit.",
+   "choices":[
+     {"t":"Dejte mi tu složku. Projdeme to systematicky — co má jasný cíl a deadline, co čeká na rozhodnutí, co se dá delegovat a co je pouze hluk.","q":"good","o":"Jana si poprvé sedla zpříma. Systematicky. Za dvacet minut měla na papíře tři sloupce — a poprvé za týden věděla, kde začít.","i":"Chaos se neřeší přidáním energie. Řeší se strukturou. Viditelnost práce mění pocit přetížení na řiditelný seznam."},
+     {"t":"Musíte se zklidnit a najít čas na přemýšlení. Doporučuji Eisenhowerovu matici — urgent vs. important...","q":"ok","o":"Jana zvedla obočí. Matici? Já nemám čas na matice. Poradil/a jsi správně, ale nevčas a ve špatné formě.","i":"Struktura musí být nabídnuta v jazyce situace, ne v jazyce učebnice. Jana nepotřebuje framework — potřebuje, aby někdo vzal složku a začal třídit."},
+     {"t":"To zní opravdu těžce. Co vás na tom nejvíc vyčerpává?","q":"bad","o":"Jana se podívala podivně. Co mě vyčerpává? Všechno! Proto jsem tady. Empatie bez akce je v krizi prázdná.","i":"Aktivní naslouchání má svůj čas — ale když někdo přijde s konkrétním problémem, nejprve řešíme fakta."}
+   ],
+   "inputPrompt":"Vyber jeden aktuální pracovní projekt. Napiš jeho cíl a jak poznáš, že je hotovo.",
+   "inputPh":"Projekt: ...\nCíl: ...\nÚspěch vypadá jako: ...",
+   "lesson":"Přetížení skoro nikdy nevzniká z množství práce. Vzniká z její neviditelnosti. Jakmile uvidíš co je co — hotové, blokované, čekající — mozek se uklidní.",
+   "principle":"Práce viditelná je práce řiditelná. Práce jen v hlavě je zdrojem chaosu.",
+   "apply":"Jednou týdně: Co se posunulo / Co je hotové / Co je blokované / Co potřebuje rozhodnutí. Pět minut každý pátek."
+  },
+  {"id":3,"title":"Tiché nedorozumění","tagline":"Případ nevyřčeného","skill":"1:1 rozhovory","rep":"důvěra","loc":"Chodba, páteční ráno",
+   "intro":"Tomáš — zkušený senior v týmu klientky — posledně reagoval na její zprávy jednoslovně. Zapomněl na dvě schůzky. Přestal posílat updaty.\n\nNevím, co se děje, řekla klientka. Fungoval skvěle. Teď je jako duch. Neříká nic, ale všechno se změnilo.",
+   "challenge":"Tiché distancování je nejnebezpečnější typ pracovního problému — nekřičí, ale pomalu ničí tým i projekt.",
+   "choices":[
+     {"t":"Požádejte Tomáše o krátký 1:1 rozhovor — bez agendy. Začněte tím, co se povedlo. Pak: Co tě teď v práci nejvíc zaměstnává? A nechte ho mluvit.","q":"good","o":"Tomáš nejprve mlčel, pak řekl, že dostal jinou nabídku a neví jak o tom říct. Situace se dala řešit — bez vyšetřování, jen s přímým rozhovorem.","i":"1:1 rozhovor není kontrolní mechanismus. Je to prostor pro věci, které se na poradě říct nedají. Stačí se zeptat správně — a nechat prostor."},
+     {"t":"Promluvte s ostatními v týmu, jestli vědí, co se děje. Pak konfrontujte Tomáše s tím, co zjistíte.","q":"bad","o":"Tomáš to pochopil za den. Přišel naštvaný: Ptali jste se na mě za mými zády? Situace, která se dala vyřešit rozhovorem, se změnila v krizi.","i":"Obcházení člověka místo přímého rozhovoru je zrada důvěry — i když je úmysl dobrý. Přímý rozhovor je vždy první volba."},
+     {"t":"Napište Tomášovi email s přehledem toho, co neplní, a požádejte o vysvětlení.","q":"ok","o":"Tomáš odpověděl formálně a obranne. Email dal věci na papír — ale tím odstranil bezpečí. Pravdu v emailu neřekl.","i":"Citlivé pracovní situace potřebují živý rozhovor. Email dává čas na obranu místo upřímnosti."}
+   ],
+   "inputPrompt":"Napiš jednoho kolegu, se kterým chybí jasnost. Co by mělo zaznít? Napiš první větu rozhovoru.",
+   "inputPh":"Osoba: ...\nCo by mělo zaznít: ...\nPrvní věta: ...",
+   "lesson":"Mlčení v práci není souhlas. Je to signál. Lidé přestanou mluvit dřív, než odejdou — kdo si toho všimne včas a otevře rozhovor, zachrání víc než jen projekt.",
+   "principle":"Pravda v práci potřebuje bezpečný prostor. 1:1 rozhovor je ten prostor — pokud ho otevřeš bez agendy a s opravdovým zájmem.",
+   "apply":"Vyber jednoho klíčového člověka v práci. Naplánuj s ním 20minutový rozhovor — bez přípravené agendy, jen otázka: Co tě teď nejvíc zaměstnává?"
+  },
+  {"id":4,"title":"Porota bez rozsudku","tagline":"Případ schůzky bez výstupu","skill":"Efektivní porady","rep":"struktura","loc":"Zasedačka č.3, pondělí 9:00",
+   "intro":"Hodina a čtvrt. Osm lidí. Tři témata, která se vzájemně proplétala. Každý mluvil, nikdo nerozhodl.\n\nKlientka vyšla z místnosti s prázdným blokem a plnou hlavou. Nevím, co jsme se vlastně dohodli, řekla. Příště budu vést schůzku já. Ale nevím jak.",
+   "challenge":"Schůzka bez struktury není schůzka — je to organizovaný chaos. Potřebuješ ji naučit, jak vzít prostor a vést ho k výsledku.",
+   "choices":[
+     {"t":"Na začátku každé schůzky řekni nahlas: Dnes máme tři body. U každého chci vědět co rozhodujeme nebo co sdílíme. Skončíme ve sjednané době. Pak drž linii.","q":"good","o":"Příští schůzka trvala 40 minut. Výstup: dvě rozhodnutí, tři úkoly s jmény a termíny. Jeden účastník napsal: Tohle bylo poprvé za měsíc produktivní.","i":"Struktura schůzky není byrokracie — je to respekt k času všech v místnosti. Říct nahlas co se bude dít a proč je nejsilnější věc na začátku."},
+     {"t":"Připrav podrobnou agendu s minutovým harmonogramem a rozešli ji den předem. Na schůzce ji sleduj přesně.","q":"ok","o":"Schůzka byla lepší, ale rigidní harmonogram způsobil napětí při odchylkách. Lidé se cítili jako na vlaku — ne jako spolutvůrci výstupu.","i":"Přílišná kontrola ubije diskusi. Agenda má dát tvar, ne kazetu. Klíčové je pojmenovat typ každého bodu — ne hlídat minuty."},
+     {"t":"Nech schůzku proběhnout přirozeně — ty jen sumarizuj na konci, co zaznělo.","q":"bad","o":"Na konci tři různí lidé si pamatovali tři různé závěry. Sumarizace bez průběžného vedení přichází příliš pozdě.","i":"Vedení schůzky neznamená mluvit nejvíc. Znamená průběžně uzavírat body a formulovat rozhodnutí nahlas, než se přejde dál."}
+   ],
+   "inputPrompt":"Připrav kostru jedné nadcházející schůzky: cíl, 2–3 body, co se má rozhodnout.",
+   "inputPh":"Cíl: ...\nBod 1: ...\nBod 2: ...\nRozhodnutí: ...",
+   "lesson":"Schůzka bez výstupu je špatný obchod. Osm lidí krát hodina = osm hodin práce. Výstup musí být viditelný dřív než odejde poslední člověk.",
+   "principle":"Dobrá schůzka musí skončit s jasným: Co bylo rozhodnuto. Kdo co udělá. Do kdy.",
+   "apply":"Před každou schůzkou si polož: Co konkrétního musí existovat na konci, aby tato schůzka měla smysl? A řekni to nahlas na začátku."
+  },
+  {"id":5,"title":"Slova bez váhy","tagline":"Případ komunikace, které nikdo nevěří","skill":"Komunikace s respektem","rep":"autorita","loc":"Klientova kancelář, středa",
+   "intro":"Mám dobrý nápad, řekl klient. Ale vždy když ho řeknu, lidi přikývnou a pak se nic nestane. Jako by moje slova zmizela ve vzduchu.\n\nPoslouchal jsi ho. Viděl jsi problém hned — ale počkal jsi, až domluvil.",
+   "challenge":"Problém není v nápadu. Problém je v tom, jak ho říká. Slova bez struktury a závěru nevyzývají k akci — jen informují.",
+   "choices":[
+     {"t":"Zeptáš se: Jak svůj nápad obvykle říkáte? Necháš ho ukázat — pak pojmenuješ přesně, co chybí: dopad, doporučení, jasná žádost.","q":"good","o":"Klient mluvil tři minuty, pak řekl tak to je asi všechno. Pojmenovals to: Řekl jste problém. Neřekl jste co chcete, aby se stalo. Klient ztuhl — a pak se usmál.","i":"Komunikace bez jasného závěru přenechává rozhodnutí druhému. Silná sdělení říkají: toto je situace, toto doporučuji, toto potřebuji."},
+     {"t":"Dáš mu strukturu: problém, dopad, návrh, co potřebuje. Napíšeš ji na papír a trénujete.","q":"ok","o":"Klient si strukturu zapsal. Bez zpětné vazby na jeho konkrétní styl ji ale použil mechanicky — znělo to jako odříkaná lekce.","i":"Struktura pomáhá, ale musí se stát přirozenou. Trénink bez okamžité zpětné vazby na konkrétní případ je pomalý."},
+     {"t":"Řekneš mu, ať je sebevědomější — ať mluví hlasitěji a pevněji.","q":"bad","o":"Klient začal mluvit hlasitěji. Problém přetrval — jen teď byl hlasitý. Síla projevu není o hlasitosti. Je o jasnosti a struktuře.","i":"Sebevědomí v komunikaci nevzniká z intenzity. Vzniká z přesnosti. Když víš přesně co říkáš a proč — tón se postará sám."}
+   ],
+   "inputPrompt":"Vezmi jedno pracovní téma a formuluj ho jako silné sdělení: situace, dopad, tvoje doporučení.",
+   "inputPh":"Situace: ...\nDopad: ...\nDoporučuji: ...\nPotřebuji: ...",
+   "lesson":"Respekt v komunikaci se nezíská hlasem ani tituly. Získává se přesností. Lidé věnují pozornost tomu, kdo mluví jasně, stručně — a vždy s patrným závěrem.",
+   "principle":"Každé důležité sdělení musí mít viditelný konec — doporučení nebo žádost. Jinak jen informuješ.",
+   "apply":"Tento týden si u každého důležitého sdělení předem polož: Co chci, aby druhý po tomto sdělení udělal nebo rozhodl?"
+  },
+  {"id":6,"title":"Vzduch kolem pravdy","tagline":"Případ věcí, které se neřekly","skill":"Hranice a zpětná vazba","rep":"odvaha","loc":"Kavárna na rohu, čtvrtek",
+   "intro":"Klientka pracuje s kolegou Radkem tři roky. Radek neustále posílá její práci dál pod svým jménem — drobné úpravy, přeposílání, prezentace jako svůj výstup.\n\nVím o tom půl roku, řekla tiše. Ale nevím jak to otevřít. Nechci drama.",
+   "challenge":"Problém není emocionální — je profesní. A každý den, kdy se neřekne, roste.",
+   "choices":[
+     {"t":"Navrhneš přímý rozhovor s Radkem — věcně, bez obvinění. Struktura: Všimla jsem si jedné věci. Chci ji pojmenovat, protože ovlivňuje naši spolupráci.","q":"good","o":"Klientka to zkusila. Radek se nejprve ohradil, pak ztichl. Nakonec řekl: Myslel jsem, že nám to nevadí. Situace se vyjasnila — bez dramatu, jen s pravdou.","i":"Věcná zpětná vazba bez emočního náboje je nejsilnější forma profesní komunikace. Fakta, dopad, potřeba — bez interpretace motivů druhé strany."},
+     {"t":"Počkáš, až se to stane znovu — pak to pojmenuješ přímo na místě, před ostatními.","q":"bad","o":"Stalo se to na poradě. Klientka to řekla. Radek zerudl. Šéf byl nesvůj. Věc se vyřešila, ale vztah se naboural na měsíce.","i":"Zpětná vazba daná veřejně se automaticky mění v konfrontaci. Soukromý rozhovor umožňuje druhé straně reagovat bez ztráty tváře."},
+     {"t":"Napíšeš email šéfovi s popisem situace a žádostí o intervenci.","q":"ok","o":"Šéf s Radkem promluvil. Situace se zastavila. Ale vztah zchladl — přímý rozhovor, který byl potřeba, nikdy neproběhl.","i":"Eskalace bez pokusu o přímý rozhovor zanechá nesplacenou komunikační pohledávku. Přímý rozhovor je levnější na vztah i energii."}
+   ],
+   "inputPrompt":"Napiš jednu pracovní situaci, která u tebe leží nevyřčená. Napiš první větu, jak bys ji otevřel/a.",
+   "inputPh":"Situace: ...\nPrvní věta: Chci otevřít jednu věc. Stalo se...",
+   "lesson":"Věci, které se neřeknou, se nerozplynou. Ukládají se a rostou. Věcné pojmenování problému — bez emočního záběru, s fakty a dopadem — je profesní dovednost, ne útok.",
+   "principle":"Říct pravdu věcně a včas je péče o vztah, ne jeho ohrožení. Co se nechá hnít, nejde pak opravit snadno.",
+   "apply":"Vyber jednu nevyřčenou situaci. Připrav její otevření: Stalo se... / mělo to tento dopad... / potřebuji, abychom příště..."
+  },
+  {"id":7,"title":"Šachová partie","tagline":"Případ vyjednávání bez přípravy","skill":"Vyjednávání","rep":"taktika","loc":"Jednací místnost, pondělí 14:00",
+   "intro":"Klient přišel roztřesený. Mám za hodinu jednání o rozpočtu. Chtějí škrtnout třetinu mého týmu.\n\nZastavil se. Nevím, co říct. Nemám argumenty. Nebo mám, ale jsou roztroušené v hlavě.",
+   "challenge":"Hodina. Žádná příprava. Vysoké sázky. Přesně tak vypadá většina skutečného vyjednávání.",
+   "choices":[
+     {"t":"Sedněte. Pět minut. Řekněte mi: co je váš cíl, co je vaše minimum a co asi chce druhá strana. Pak teprve jdeme na argumenty.","q":"good","o":"Za pět minut měl klient jasno. Přišel s alternativou — jiný způsob, jak ušetřit potřebnou částku bez propuštění. Jednání dopadlo lépe než čekal.","i":"Vyjednávání se kazí nejčastěji na začátku — když vstoupíme bez jasného vlastního cíle a minima. Příprava trvá pět minut. Chybějící příprava trvá celé jednání."},
+     {"t":"Připravte si seznam všech důvodů, proč je váš tým nezbytný — co dělá, jak je dobrý, co by se bez něj nestalo.","q":"ok","o":"Klient přišel se seznamem. Druhá strana řekla: To je hezké, ale čísla jsou čísla. Argumenty bez alternativy jsou jen apel.","i":"Vyjednávání není debata, kde vyhraje ten s lepšími argumenty. Je to hledání řešení. Bez alternativy jsi jen v obraně."},
+     {"t":"Buďte pevní — řekněte, že jakékoliv škrty jsou nepřijatelné a budete bojovat.","q":"bad","o":"Druhá strana přistoupila na konfrontaci a přišla s právním oddělením. Pevnost bez flexibility není síla — je to uzavřená cesta.","i":"Ultimáta bez záchranné větve zavírají dveře k řešení. Pevnost musí mít vždy variantu: Takhle ne — ale takto by to mohlo fungovat."}
+   ],
+   "inputPrompt":"Vyber jedno aktuální nebo nadcházející jednání. Napiš: tvůj cíl, tvoje minimum, co asi chce druhá strana.",
+   "inputPh":"Téma: ...\nMůj cíl: ...\nMoje minimum: ...\nDruhá strana chce: ...",
+   "lesson":"Vyjednávání nevyhrává ten, kdo mluví hlasitěji. Vyhrává ten, kdo přišel s jasnou hlavou — kdo ví co chce, co obětovat nemůže a co nabídnout může.",
+   "principle":"Příprava na vyjednávání není slabost. Je to respekt k vlastním zájmům — a k těm druhé strany.",
+   "apply":"Před každým důležitým jednáním si zapiš: Cíl / Minimum / Co pravděpodobně chce druhá strana. Pět minut. Pokaždé."
+  },
+  {"id":8,"title":"Prázdné podium","tagline":"Případ prezentace, která nepřesvědčila","skill":"Prezentace","rep":"přehled","loc":"Po prezentaci, výtah",
+   "intro":"Klientka právě odešla z boardroomu. Prezentovala nový projekt čtvrt hodiny. Slidy vypadaly dobře. Data byla správná. Přikývli, pogratulovali — a pak téma zmizelo z kalendáře.\n\nProč se nic nestalo? zeptala se. Všichni souhlasili.",
+   "challenge":"Souhlas bez akce je zdvořilé odmítnutí. Prezentace přesvědčila — ale k ničemu nevyzvala.",
+   "choices":[
+     {"t":"Ptáš se: Čím skončila vaše prezentace? Pokud to bylo shrnutí nebo poděkování — tam je problém. Prezentace musí skončit jasnou žádostí.","q":"good","o":"Ticho. Ne... myslela jsem, že to je jasné. Za týden přišla znovu — s prezentací, která skončila větou: Potřebuji vaše rozhodnutí do pátku.","i":"Každá prezentace potřebuje viditelný konec — jasnou žádost nebo krok, který má nastat. Bez toho jsi jen informoval/a."},
+     {"t":"Řekneš jí, ať příště udělá slidy hezčí a data přehlednější.","q":"bad","o":"Příští verze měla lepší vizuály. Výsledek byl stejný. Estetika není problém. Struktura a výzva k akci jsou problém.","i":"Forma bez obsahu nepomáhá. Přesvědčivost prezentace nestojí na vizuálech — stojí na jasnosti sdělení a výzvě na konci."},
+     {"t":"Navrhneš follow-up email po prezentaci s shrnutím a dalšími kroky.","q":"ok","o":"Email přišel. Jeden člen boardu odpověděl. Dva nereagovali. Follow-up pomohl — ale neopravil to, co chybělo přímo v místnosti.","i":"Follow-up zachrání část situace, ale není náhrada za silný závěr prezentace. Co nezazní v místnosti, těžko dožene email."}
+   ],
+   "inputPrompt":"Vyber téma, které potřebuješ prosadit. Napiš poslední větu své prezentace — jasnou žádost.",
+   "inputPh":"Téma: ...\nZávěrečná věta: Potřebuji / Navrhuji / Žádám o...",
+   "lesson":"Prezentace nekončí posledním slidem. Končí v okamžiku, kdy druhá strana ví, co se od ní očekává. Bez explicitního závěru nechávají prezentéři rozhodnutí na náhodě.",
+   "principle":"Dobrá prezentace má jeden viditelný konec: jasnou žádost. Všechno ostatní je příprava na ten okamžik.",
+   "apply":"Před každou prezentací si zapiš jedinou větu: Co chci, aby se stalo poté, co skončím mluvit? Tato věta musí zaznít nahlas — na konci."
+  },
+  {"id":9,"title":"Různé jazyky","tagline":"Případ tření bez příčiny","skill":"Práce s lidmi","rep":"důvěra","loc":"Terasa firmy, páteční oběd",
+   "intro":"Dva senioři v týmu. Oba dobří. Pavel je přímý, rychlý, chce závěry. Lenka je analytická, potřebuje kontext, nenávidí uspěchání.\n\nKaždá jejich společná schůzka skončí studeně, řekla šéfka. Nevím co dělat.",
+   "challenge":"Problém není osobní nesympatie. Problém je střet komunikačních stylů — a nikdo to dosud nepojmenoval.",
+   "choices":[
+     {"t":"Pojmenuješ oba styly bez hodnocení: Pavel potřebuje rychlost a závěr, Lenka potřebuje kontext a čas. Navrhneš pravidlo: Pavel sdílí závěr dopředu, Lenka posílá podklady předem.","q":"good","o":"Šéfka to vyzkoušela na další poradě. Pavel řekl závěr v první větě. Lenka dostala podklady den předem. Schůzka trvala 25 minut místo 55.","i":"Tření mezi lidmi nevzniká z charakteru, ale z nesouladu stylů. Pojmenovat styl bez hodnocení je klíč — ne Pavel je netrpělivý, ale Pavel potřebuje závěr na začátku."},
+     {"t":"Necháš je to vyřešit mezi sebou — jsou dost profesionální na to, aby se dohodli.","q":"ok","o":"Nic se nestalo. Tření přetrvávalo. Profesionalita nestačí tam, kde lidé nerozumí proč k tření dochází.","i":"Čekání na přirozenou dohodu mezi různými styly je optimistické, ale riskantní. Lidé potřebují jazyk pro svůj rozdíl — ne jen dobrou vůli."},
+     {"t":"Přesunout je do různých projektů, kde nemusí spolupracovat.","q":"bad","o":"Firma přišla o synergii dvou silných lidí. Řešení strukturou místo komunikací je zbytečně drahé.","i":"Vyhýbání se tření přesunem je řešení s vedlejším účinkem: ztratíš sílu, která by vznikla spoluprací. Tření se dá transformovat — pokud ho pojmenuješ."}
+   ],
+   "inputPrompt":"Napiš jednoho člověka, se kterým vzniká opakované tření. Co je jeho styl? Co bys příště udělal/a jinak?",
+   "inputPh":"Osoba: ...\nJejich styl: ...\nCo bych mohl/a udělat jinak: ...",
+   "lesson":"Lidé se neliší v hodnotě — liší se ve stylu. Kdo chce rychle k věci a kdo potřebuje kontext. Rozpoznat to a přizpůsobit se je praktická dovednost.",
+   "principle":"Přizpůsobit komunikační styl není slabost. Je to preciznost — jako ladit nástroj před hrou.",
+   "apply":"Vyber tři klíčové lidi ve svém pracovním životě. Pro každého napiš jednu větu: Co potřebuje, aby se mu s tebou dobře pracovalo?"
+  },
+  {"id":10,"title":"Poslední případ","tagline":"Případ detektiva samého","skill":"Energie a udržitelnost","rep":"autorita","loc":"Tvoje kancelář, pozdní večer",
+   "intro":"Klient přišel bez schůzky, pozdě. Byl to detektiv — podobný tobě, o pár let starší. Unavený pohled, který znáš ze zrcadla.\n\nPřebírám příliš mnoho případů, řekl. Neumím říct ne. Neumím zastavit. A teď jsem přestal fungovat dobře na každém z nich.\n\nMlčel jsi chvíli. Pak sis uvědomil/a, že mluvíš o sobě stejně tak jako o něm.",
+   "challenge":"Udržitelnost není o odpočinku. Je o systému. Člověk, který nemá nastavené signály přetížení a hranice, se neřídí — jen reaguje.",
+   "choices":[
+     {"t":"Zeptáš se: Jaké jsou vaše první signály, že jedete přes hranu? Ne pozdní — první. Pak teprve pracujete na systému.","q":"good","o":"Detektiv přemýšlel. Přestanu si pamatovat jména klientů. — To je pozdní signál. Co přijde dřív? Ticho. Přestanu spát přes poledne. A tam jsi začal/a.","i":"Přetížení nechodí najednou. Chodí po stopách. Kdo zná své rané signály, může zastavit včas — ne až když je pozdě."},
+     {"t":"Doporučíš mu vzít si dovolenou — nabít se a pak začít znovu.","q":"ok","o":"Vzal si týden. Vrátil se odpočatý. Za tři týdny byl na stejném místě. Dovolená léčí symptomy. Systém léčí příčinu.","i":"Odpočinek je nutný — ale není dostatečný. Bez změny systému se unavený člověk vrátí ke stejnému systému, který ho unavil."},
+     {"t":"Řekneš mu, ať začne odmítat případy, které ho nestojí za to.","q":"ok","o":"Odmítl pár případů. Pak mu chyběl příjem. Pak přijal víc, aby to kompenzoval. Odmítání bez systému priorit vede ke kompenzačnímu přetížení.","i":"Říkat ne je dovednost — ale bez jasného rámce priorit je to záplatování bez mapy. Nejprve systém, pak hranice."}
+   ],
+   "inputPrompt":"Napiš tři věci, které tě v práci zbytečně berou energii. U jedné napiš co s tím uděláš.",
+   "inputPh":"1. ...\n2. ...\n3. ...\n\nU čísla [...] udělám: ...",
+   "lesson":"Udržitelnost není cíl pro slabé. Je to podmínka pro každého, kdo chce fungovat dobře déle než rok. Systém, nikoli silná vůle, je to, co drží výkon v čase.",
+   "principle":"Kdo nezná své signály přetížení, reaguje vždy pozdě. Zastavit načas není selhání — je to profesionalita.",
+   "apply":"Napiš si tři pravidla udržitelnosti, která chceš držet. Dej je tam, kde je uvidíš každý den."
+  }
+]
+</script>
+
+<script>
+// Load data from JSON tag — avoids all JS string escaping issues
+var CASES = JSON.parse(document.getElementById('cases-data').textContent);
+var REP   = ["autorita","přehled","důvěra","struktura","taktika","odvaha"];
+var SK    = "noir_v5";
+var S     = {done:{}, rep:{}};
+REP.forEach(function(r){ S.rep[r] = 0; });
+
+function load(){
+  try{ var d = localStorage.getItem(SK); if(d) S = JSON.parse(d); }catch(e){}
+  REP.forEach(function(r){ if(!S.rep[r]) S.rep[r] = 0; });
+}
+function save(){
+  try{ localStorage.setItem(SK, JSON.stringify(S)); }catch(e){}
+}
+
+var curId    = null;
+var curStage = "choice";
+var curPick  = null;
+var noteVal  = "";
+
+// ── screens ──────────────────────────────────────────────────
+function goTo(id){
+  ["s-title","s-board","s-case","s-debrief"].forEach(function(sid){
+    var el = document.getElementById(sid);
+    el.classList.remove("on");
+    el.style.display = "";
+  });
+  var el = document.getElementById(id);
+  el.classList.add("on");
+  window.scrollTo(0,0);
+}
+
+// ── rain ─────────────────────────────────────────────────────
+function mkRain(){
+  var r = document.getElementById("rain");
+  for(var i=0;i<55;i++){
+    var d = document.createElement("div");
+    d.className = "drop";
+    d.style.left = (Math.random()*100)+"vw";
+    d.style.height = (40+Math.random()*70)+"px";
+    d.style.animationDuration = (.6+Math.random()*1.1)+"s";
+    d.style.animationDelay   = (-Math.random()*2)+"s";
+    r.appendChild(d);
+  }
+}
+
+// ── title ─────────────────────────────────────────────────────
+function showTitle(){
+  var p = document.getElementById("pips");
+  p.innerHTML = "";
+  CASES.forEach(function(c){
+    var d = document.createElement("div");
+    d.className = "pip" + (S.done[c.id] ? " on" : "");
+    p.appendChild(d);
+  });
+  goTo("s-title");
+}
+
+// ── board ─────────────────────────────────────────────────────
+function showBoard(){
+  var rh = '<div class="rep-lbl">Tvoje reputace</div>';
+  REP.forEach(function(r){
+    var v = Math.min(100,(S.rep[r]||0)*20);
+    rh += '<div class="rep-row">';
+    rh += '<span class="rep-nm">'+r.charAt(0).toUpperCase()+r.slice(1)+'</span>';
+    rh += '<div class="rep-tr"><div class="rep-fi" style="width:'+v+'%"></div></div>';
+    rh += '<span class="rep-vl">'+(S.rep[r]||0)+'/5</span>';
+    rh += '</div>';
+  });
+  document.getElementById("rep-box").innerHTML = rh;
+
+  var ch = "";
+  CASES.forEach(function(c,i){
+    var done  = !!S.done[c.id];
+    var avail = i===0 || !!S.done[CASES[i-1].id];
+    var locked = !avail;
+    var qual  = done ? S.done[c.id].quality : null;
+    var sc    = qual==="good" ? '<span style="color:var(--green2)">●●●</span>'
+              : qual==="ok"   ? '<span style="color:var(--amber)">●●○</span>'
+              : qual==="bad"  ? '<span style="color:var(--red2)">●○○</span>' : "";
+    var cls = "card"+(done?" done":"")+(locked?" locked":"");
+    ch += '<div class="'+cls+'"'+(avail?' onclick="openCase('+c.id+')"':'')+' style="cursor:'+(avail?'pointer':'default')+'">';
+    ch += '<div class="cnum">'+(done?"✓":c.id)+'</div>';
+    ch += '<div class="cbody">';
+    ch += '<div class="cstat">'+(done?"UZAVŘEN":locked?"ZAMČEN":"OTEVŘEN")+'</div>';
+    ch += '<div class="ctit">'+c.title+'</div>';
+    ch += '<div class="cdesc">'+c.tagline+'</div>';
+    ch += '</div>';
+    if(sc) ch += '<div style="font-size:.8rem;flex-shrink:0">'+sc+'</div>';
+    ch += '</div>';
+  });
+  document.getElementById("cards").innerHTML = ch;
+  goTo("s-board");
+}
+
+// ── case ─────────────────────────────────────────────────────
+function openCase(id){
+  curId    = id;
+  var sv   = S.done[id];
+  curStage = sv ? "done" : "choice";
+  curPick  = sv ? sv.choiceIdx : null;
+  noteVal  = "";
+  renderCase();
+  goTo("s-case");
+}
+
+function renderCase(){
+  var c  = null;
+  for(var i=0;i<CASES.length;i++){ if(CASES[i].id===curId){ c=CASES[i]; break; } }
+  if(!c) return;
+  var sv = S.done[curId];
+  var h  = "";
+
+  h += '<div class="stamp'+(sv?" cl":"")+'">'+( sv ? "UZAVŘEN" : "AKTIVNÍ PŘÍPAD")+'</div>';
+  h += '<div class="cnum2">Případ č.0'+c.id+' &middot; '+c.skill+'</div>';
+  h += '<h2 class="case-h">'+c.title+'</h2>';
+  h += '<div class="case-sub">'+c.tagline+'</div>';
+
+  var ihtml = c.intro.replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');
+  h += '<div class="scene" data-loc="'+c.loc+'"><div class="scene-txt">'+ihtml+'</div></div>';
+  h += '<div class="chal">&#9889; '+c.challenge+'</div>';
+  h += '<div class="ch-h">Jak reaguješ?</div>';
+
+  if(curStage==="choice"){
+    for(var i=0;i<c.choices.length;i++){
+      var ch = c.choices[i];
+      var L  = ["A","B","C"][i];
+      h += '<button class="choice" onclick="pick('+i+')"><strong>'+L+'.</strong> '+ch.t+'</button>';
+    }
+  }
+
+  if(curStage==="outcome" && curPick!==null){
+    var chosen = c.choices[curPick];
+    for(var i=0;i<c.choices.length;i++){
+      var ch2 = c.choices[i];
+      var L2  = ["A","B","C"][i];
+      var sel = (i===curPick) ? ' class="choice sel-'+chosen.q+'" disabled' : ' class="choice" disabled style="opacity:.3"';
+      h += '<button'+sel+'><strong>'+L2+'.</strong> '+ch2.t+'</button>';
+    }
+    var ql = chosen.q==="good"?"SKVĚLÝ VÝSLEDEK":chosen.q==="ok"?"PŘIJATELNÝ VÝSLEDEK":"SLOŽITÝ TAH";
+    h += '<div class="oc '+chosen.q+'">';
+    h += '<div class="oc-lbl">'+ql+'</div>';
+    h += '<div class="oc-txt">'+chosen.o+'</div>';
+    h += '<div class="oc-ins">&#128206; '+chosen.i+'</div>';
+    h += '</div>';
+    h += '<hr class="div2">';
+    h += '<div class="inp-lbl">Zápisník detektiva</div>';
+    h += '<div class="inp-p">'+c.inputPrompt+'</div>';
+    h += '<textarea id="note-ta" placeholder="'+c.inputPh+'" rows="5"></textarea>';
+    h += '<br><button class="btn-go" id="note-btn" disabled onclick="submitCase()">Uzavřít případ &#8594;</button>';
+  }
+
+  if(curStage==="done" && sv){
+    var sch = c.choices[sv.choiceIdx];
+    for(var i=0;i<c.choices.length;i++){
+      var ch3 = c.choices[i];
+      var L3  = ["A","B","C"][i];
+      var sel2 = (i===sv.choiceIdx) ? ' class="choice sel-'+sv.quality+'" disabled' : ' class="choice" disabled style="opacity:.3"';
+      h += '<button'+sel2+'><strong>'+L3+'.</strong> '+ch3.t+'</button>';
+    }
+    var ql2 = sch.q==="good"?"SKVĚLÝ VÝSLEDEK":sch.q==="ok"?"PŘIJATELNÝ VÝSLEDEK":"SLOŽITÝ TAH";
+    h += '<div class="oc '+sv.quality+'">';
+    h += '<div class="oc-lbl">'+ql2+'</div>';
+    h += '<div class="oc-txt">'+sch.o+'</div>';
+    h += '<div class="oc-ins">&#128206; '+sch.i+'</div>';
+    h += '</div>';
+    if(sv.note) h += '<div style="margin-top:14px;border:1px solid rgba(200,184,150,.15);padding:14px;font-size:.82rem;color:var(--aged);font-style:italic;line-height:1.8;">"'+sv.note+'"</div>';
+    h += '<div style="margin-top:18px"><button class="btn-go" onclick="showBoard()">&#8592; Nástěnka</button></div>';
+  }
+
+  document.getElementById("case-body").innerHTML = h;
+
+  var ta = document.getElementById("note-ta");
+  if(ta){
+    ta.addEventListener("input", function(){
+      noteVal = this.value;
+      var btn = document.getElementById("note-btn");
+      if(btn) btn.disabled = !noteVal.trim();
+    });
+  }
+}
+
+function pick(idx){
+  curPick  = idx;
+  curStage = "outcome";
+  renderCase();
+}
+
+function submitCase(){
+  if(!noteVal.trim()) return;
+  var c = null;
+  for(var i=0;i<CASES.length;i++){ if(CASES[i].id===curId){ c=CASES[i]; break; } }
+  var ch = c.choices[curPick];
+  S.done[curId] = {choiceIdx:curPick, quality:ch.q, note:noteVal.trim()};
+  var gain = ch.q==="good"?2:ch.q==="ok"?1:0;
+  S.rep[c.rep] = Math.min(5,(S.rep[c.rep]||0)+gain);
+  save();
+  renderDebrief();
+  goTo("s-debrief");
+}
+
+// ── debrief ──────────────────────────────────────────────────
+function renderDebrief(){
+  var c = null;
+  for(var i=0;i<CASES.length;i++){ if(CASES[i].id===curId){ c=CASES[i]; break; } }
+  var sv  = S.done[curId];
+  var ch  = c.choices[sv.choiceIdx];
+  var gd=0,ok=0,bd=0;
+  Object.keys(S.done).forEach(function(k){
+    var q = S.done[k].quality;
+    if(q==="good") gd++; else if(q==="ok") ok++; else bd++;
+  });
+  var sc  = ch.q==="good"?"●●●":ch.q==="ok"?"●●○":"●○○";
+  var stc = ch.q==="good"?"var(--green2)":ch.q==="ok"?"var(--amber)":"var(--red2)";
+  var stt = ch.q==="good"?"PŘÍPAD VYŘEŠEN":ch.q==="ok"?"PŘÍPAD UZAVŘEN":"PŘÍPAD PŘEŽIT";
+  var nxt = curId+1;
+  var hasN = nxt<=10 && !S.done[nxt];
+
+  var h = "";
+  h += '<div style="text-align:center;margin-bottom:28px">';
+  h += '<div class="db-stamp" style="border-color:'+stc+';color:'+stc+'">'+stt+'</div>';
+  h += '<h2 class="db-h">'+c.title+'</h2>';
+  h += '<p class="db-sub">'+c.tagline+'</p>';
+  h += '</div>';
+  h += '<div class="sc-row">';
+  h += '<div class="sc-item"><div class="sc-big '+ch.q+'">'+sc+'</div><div class="sc-sm">Tento případ</div></div>';
+  h += '<div class="sc-item"><div class="sc-big good">'+gd+'</div><div class="sc-sm">Brilantních</div></div>';
+  h += '<div class="sc-item"><div class="sc-big ok">'+ok+'</div><div class="sc-sm">Solidních</div></div>';
+  h += '<div class="sc-item"><div class="sc-big bad">'+bd+'</div><div class="sc-sm">Složitých</div></div>';
+  h += '</div>';
+  h += '<div class="db-sec"><div class="db-sl">Co se ukázalo</div><div class="db-tx">'+c.lesson+'</div><div class="db-pr">'+c.principle+'</div></div>';
+  h += '<div class="db-sec"><div class="db-sl">Jeden krok do praxe</div><div class="db-tx">'+c.apply+'</div></div>';
+  if(sv.note) h += '<div class="db-sec"><div class="db-sl">Tvůj zápisník</div><div class="db-tx" style="font-style:italic;color:var(--paper)">"'+sv.note+'"</div></div>';
+  h += '<div class="btn-row">';
+  h += '<button class="btn-go" onclick="showBoard()">Zpět na nástěnku</button>';
+  if(hasN) h += '<button class="btn-go btn-am" onclick="openCase('+nxt+')">Další případ &#8594;</button>';
+  h += '</div>';
+
+  document.getElementById("deb-body").innerHTML = h;
+}
+
+// ── wire static buttons ───────────────────────────────────────
+document.getElementById("btn-open").addEventListener("click", showBoard);
+document.getElementById("btn-back-title").addEventListener("click", showTitle);
+document.getElementById("btn-back-board").addEventListener("click", showBoard);
+
+// ── init ─────────────────────────────────────────────────────
+load();
+mkRain();
+showTitle();
+</script>
+</body>
+</html>
