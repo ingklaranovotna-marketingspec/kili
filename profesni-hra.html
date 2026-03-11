@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>10 kol · Profesní rozvojový program</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #08080E;
+    --surface: #0F0F1A;
+    --surface2: #141422;
+    --border: #1E1E30;
+    --border2: #252540;
+    --text: #E4E0D8;
+    --text2: #8A8690;
+    --text3: #4A4860;
+    --gold: #D4A843;
+    --gold-dim: #D4A84322;
+    --mono: 'JetBrains Mono', monospace;
+    --serif: 'Playfair Display', Georgia, serif;
+    --accent: #D4A843;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--serif);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: radial-gradient(ellipse 60% 50% at 50% 0%, #1a1a3a44, transparent);
+    pointer-events: none; z-index: 0;
+  }
+
+  .page { display: none; max-width: 660px; margin: 0 auto; padding: 48px 20px 80px; position: relative; z-index: 1; }
+  .page.active { display: block; animation: fadeUp 0.4s ease; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+  h1 { font-family: var(--serif); font-weight: 700; font-size: clamp(1.8rem, 5vw, 2.6rem); line-height: 1.15; }
+  h2 { font-family: var(--serif); font-weight: 400; font-size: 1.6rem; line-height: 1.2; }
+  h3 { font-family: var(--serif); font-weight: 400; font-size: 1.15rem; line-height: 1.5; }
+  p { line-height: 1.75; color: var(--text2); font-family: Georgia, serif; font-size: 0.95rem; }
+  .label { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text3); }
+  .mono { font-family: var(--mono); }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+
+  .btn {
+    display: block; width: 100%; padding: 15px 20px;
+    border: none; border-radius: 10px;
+    font-family: var(--mono); font-size: 0.85rem; letter-spacing: 0.1em;
+    cursor: pointer; transition: all 0.18s ease;
+    text-transform: uppercase; font-weight: 500;
+  }
+  .btn-primary { background: var(--accent); color: #08080E; }
+  .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .btn-primary:disabled { background: var(--surface2); color: var(--text3); cursor: not-allowed; transform: none; filter: none; }
+
+  .xp-bar-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; }
+  .xp-bar-track { height: 5px; background: var(--bg); border-radius: 3px; overflow: hidden; margin-top: 10px; }
+  .xp-bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+
+  .chapter-item {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 18px;
+    cursor: pointer; transition: all 0.18s ease;
+    margin-bottom: 8px; position: relative; overflow: hidden;
+  }
+  .chapter-item.available:hover { transform: translateX(3px); }
+  .chapter-item.locked { opacity: 0.35; cursor: not-allowed; }
+  .chapter-item.done::after {
+    content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--item-color, var(--gold)); border-radius: 0 10px 10px 0;
+  }
+  .ch-icon {
+    width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+    border-radius: 9px; font-size: 1.4rem; flex-shrink: 0; background: var(--surface2);
+  }
+  .ch-meta { flex: 1; min-width: 0; }
+  .ch-num { font-family: var(--mono); font-size: 0.62rem; color: var(--text3); letter-spacing: 0.2em; }
+  .ch-title { font-size: 0.98rem; font-family: var(--serif); margin-top: 2px; }
+  .ch-sub { font-size: 0.78rem; color: var(--text3); font-family: Georgia, serif; margin-top: 2px; }
+  .ch-xp { font-family: var(--mono); font-size: 0.72rem; color: var(--text3); flex-shrink: 0; }
+
+  .dots { display: flex; gap: 5px; align-items: center; }
+  .dot { width: 28px; height: 4px; border-radius: 2px; background: var(--border2); }
+  .dot.done { background: var(--accent); }
+  .dot.active { background: color-mix(in srgb, var(--accent) 50%, transparent); }
+
+  .theory-text { white-space: pre-line; line-height: 1.85; color: var(--text2); font-size: 0.93rem; font-family: Georgia, serif; }
+
+  .weak-box { background: #1a0808; border: 1px solid #3a1414; border-radius: 8px; padding: 14px 18px; margin-bottom: 18px; }
+  .weak-quote { color: #887; font-style: italic; line-height: 1.6; font-family: Georgia, serif; font-size: 0.92rem; }
+
+  .choice-btn {
+    display: block; width: 100%; text-align: left; padding: 12px 16px; margin-bottom: 7px;
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text2); font-family: Georgia, serif; font-size: 0.92rem;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .choice-btn:hover { border-color: var(--border2); color: var(--text); }
+  .choice-btn.selected { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); }
+
+  textarea {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px; color: var(--text); font-family: Georgia, serif; font-size: 0.93rem;
+    line-height: 1.75; resize: vertical; transition: border-color 0.2s;
+  }
+  textarea:focus { border-color: var(--border2); outline: none; }
+  textarea:disabled { opacity: 0.7; }
+
+  .xp-float {
+    position: fixed; top: 22%; left: 50%; transform: translateX(-50%);
+    font-family: var(--mono); font-size: 1.8rem; font-weight: 500;
+    color: var(--gold); text-shadow: 0 0 30px var(--gold);
+    pointer-events: none; z-index: 9999;
+    animation: xpFloat 1.4s ease-out forwards;
+  }
+  @keyframes xpFloat {
+    0% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-70px); }
+  }
+
+  .confirmed-note {
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+    border-radius: 8px; padding: 10px 14px; margin-bottom: 14px;
+    font-family: var(--mono); font-size: 0.78rem; color: var(--accent);
+  }
+
+  .badge-box {
+    border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+    border-radius: 10px; padding: 20px; text-align: center; margin-bottom: 20px;
+  }
+  .badge-name { font-family: var(--serif); font-size: 1.2rem; color: var(--accent); }
+  .badge-label { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.25em; color: var(--text3); text-transform: uppercase; margin-bottom: 8px; }
+
+  .badges-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .badge-chip { background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; font-family: var(--mono); font-size: 0.65rem; color: var(--text3); }
+
+  .hint { font-family: var(--mono); font-size: 0.75rem; color: var(--text3); font-style: italic; margin-top: 10px; }
+
+  .nav-back { background: none; border: none; color: var(--text3); cursor: pointer; font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.1em; padding: 0; margin-bottom: 28px; display: flex; align-items: center; gap: 6px; transition: color 0.15s; }
+  .nav-back:hover { color: var(--text2); }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  @media (max-width: 500px) { .page { padding: 32px 16px 60px; } }
+</style>
+</head>
+<body>
+
+<div id="xp-float-container"></div>
+
+<!-- HOME -->
+<div class="page active" id="page-home">
+  <div style="text-align:center; margin-bottom:44px;">
+    <div class="label" style="margin-bottom:14px;">Profesní rozvojový program</div>
+    <h1 style="background:linear-gradient(135deg,#D4A843,#E8723A);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:12px;">
+      10 kol do nového<br>profesního stylu
+    </h1>
+    <p style="max-width:420px;margin:0 auto;">Každé kolo = jedno klíčové téma. Teorie, tři výzvy, reflexe. Skutečná praxe, ne jen čtení.</p>
+  </div>
+  <div class="xp-bar-wrap" style="margin-bottom:28px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <span id="home-level-name" class="mono" style="font-size:0.85rem;font-weight:500;">Nováček</span>
+        <span id="home-xp" class="mono" style="font-size:0.75rem;color:var(--text3);margin-left:10px;">0 XP</span>
+      </div>
+      <span id="home-badges-count" class="mono" style="font-size:0.7rem;color:var(--text3);">0/10 odznaků</span>
+    </div>
+    <div class="xp-bar-track"><div class="xp-bar-fill" id="home-xp-fill" style="width:0%;background:var(--gold);"></div></div>
+    <div class="badges-row" id="home-badges-row"></div>
+  </div>
+  <div id="chapter-list"></div>
+  <div style="text-align:center;margin-top:40px;"><span class="label">Real practice · Structured reflection · Lasting change</span></div>
+</div>
+
+<!-- THEORY -->
+<div class="page" id="page-theory">
+  <button class="nav-back" onclick="goHome()">← Zpět</button>
+  <div id="theory-pill" class="label" style="margin-bottom:16px;display:inline-block;padding:4px 12px;border-radius:4px;border:1px solid;"></div>
+  <div id="theory-icon" style="font-size:3rem;margin-bottom:14px;"></div>
+  <h2 id="theory-title" style="margin-bottom:4px;"></h2>
+  <p id="theory-subtitle" style="margin-bottom:28px;font-style:italic;"></p>
+  <div class="card" style="margin-bottom:28px;">
+    <div class="label" style="margin-bottom:14px;display:block;">Základ pro toto kolo</div>
+    <div class="theory-text" id="theory-text"></div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;" id="theory-pills"></div>
+  <button class="btn btn-primary" id="theory-btn" onclick="startTasks()">Začít výzvy →</button>
+</div>
+
+<!-- TASK -->
+<div class="page" id="page-task">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;">
+    <button class="nav-back" style="margin-bottom:0;" onclick="showTheory()">← Teorie</button>
+    <div class="dots" id="task-dots"></div>
+    <span class="mono" id="task-counter" style="font-size:0.75rem;color:var(--text3);"></span>
+  </div>
+  <div style="margin-bottom:10px;"><span class="label" id="task-type-label" style="padding:3px 10px;border-radius:4px;border:1px solid;display:inline-block;"></span></div>
+  <h3 id="task-prompt" style="margin-bottom:22px;font-size:1.1rem;"></h3>
+  <div id="task-weak-box" class="weak-box" style="display:none;">
+    <span class="label" style="display:block;margin-bottom:8px;">Slabá verze</span>
+    <div class="weak-quote" id="task-weak-text"></div>
+  </div>
+  <div id="task-choices" style="display:none;"></div>
+  <textarea id="task-textarea" rows="5" style="display:none;"></textarea>
+  <div class="hint" id="task-hint" style="display:none;"></div>
+  <div style="margin-top:18px;">
+    <div class="confirmed-note" id="task-confirmed" style="display:none;">✓ Odpověď uložena</div>
+    <button class="btn btn-primary" id="task-submit-btn" onclick="submitTask()">Potvrdit odpověď</button>
+    <button class="btn btn-primary" id="task-next-btn" style="display:none;" onclick="nextTask()">Další výzva →</button>
+  </div>
+</div>
+
+<!-- REFLECTION -->
+<div class="page" id="page-reflection">
+  <div style="text-align:center;margin-bottom:32px;">
+    <div style="font-size:3rem;margin-bottom:12px;">🔍</div>
+    <h2 style="margin-bottom:6px;">Závěrečná reflexe</h2>
+    <p id="refl-subtitle" style="font-style:italic;"></p>
+  </div>
+  <div class="card" id="refl-card" style="margin-bottom:22px;border-color:color-mix(in srgb, var(--accent) 35%, transparent);">
+    <p id="refl-question" style="font-size:1rem;color:var(--text);line-height:1.7;font-style:italic;"></p>
+  </div>
+  <textarea id="refl-textarea" rows="6" placeholder="Napiš alespoň pár vět — tahle část je pro tebe, ne pro nikoho jiného..."></textarea>
+  <div style="margin-top:16px;"><button class="btn btn-primary" id="refl-btn" onclick="submitReflection()">Dokončit kolo · +20 XP</button></div>
+</div>
+
+<!-- SUMMARY -->
+<div class="page" id="page-summary">
+  <div style="text-align:center;padding:40px 0 32px;">
+    <div style="font-size:4rem;margin-bottom:16px;">🏆</div>
+    <h2 id="sum-title" style="margin-bottom:6px;"></h2>
+    <p id="sum-sub" style="font-style:italic;"></p>
+  </div>
+  <div class="badge-box" id="sum-badge-box" style="margin-bottom:20px;">
+    <div class="badge-label">Nový odznak</div>
+    <div class="badge-name" id="sum-badge-name"></div>
+  </div>
+  <div class="xp-bar-wrap" style="margin-bottom:24px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <span id="sum-level" class="mono" style="font-size:0.85rem;font-weight:500;"></span>
+      <span id="sum-xp" class="mono" style="font-size:0.75rem;color:var(--text3);"></span>
+    </div>
+    <div class="xp-bar-track"><div class="xp-bar-fill" id="sum-xp-fill" style="width:0%;"></div></div>
+  </div>
+  <p id="sum-progress" class="mono" style="font-size:0.75rem;color:var(--text3);text-align:center;margin-bottom:24px;"></p>
+  <button class="btn btn-primary" id="sum-btn" onclick="goHome()">Přejít na další kolo →</button>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════════════
+const CHAPTERS = [
+  {
+    id:1, title:"Profesní ukotvení", subtitle:"Kdo jsem v práci a co přináším?",
+    icon:"⚓", color:"#D4A843", xp:100,
+    theory:`Většina lidí popisuje svou práci přes aktivity: odpovídám na emaily, připravuji podklady, vedu schůzky. Jenže to je slabý popis. Neukazuje přínos ani hodnotu.
+
+Profesně silnější popis vypadá jinak: vytvářím jasnost, převádím nejasné požadavky do konkrétních kroků, pomáhám lidem rozhodovat, udržuji strukturu projektů.
+
+Rozdíl mezi těmito dvěma úrovněmi je zásadní. První ukazuje aktivitu. Druhá ukazuje profesní hodnotu.`,
+    tasks:[
+      {id:"1a",type:"rewrite",prompt:"Přepiš tuto slabou formulaci do silnější verze — tak, aby byl vidět přínos, ne jen činnost.",weak:"Dělám reporty a odpovídám na dotazy kolegů.",placeholder:"Napiš silnější verzi...",hint:"Zkus začít slovem jako: pomáhám, vytvářím, zajišťuji, propojuji...",xp:30},
+      {id:"1b",type:"open",prompt:"Napiš svůj profesní přínos v jedné větě. Co by se bez tebe dělalo hůř nebo vůbec?",placeholder:"Ve své práci přináším hodnotu tím, že...",xp:40},
+      {id:"1c",type:"open",prompt:"Napiš profesní představení (4–6 vět). Ne co děláš, ale čím jsi užitečný/á. Oblast → problém, který řeším → co se díky tomu děje lépe.",placeholder:"Pracuji v oblasti... Moje práce pomáhá...",long:true,xp:30}
+    ],
+    reflection:"Co nového sis uvědomil/a o své skutečné pracovní roli?",
+    badge:"Ukotvený profesionál"
+  },
+  {
+    id:2, title:"Cíle a priority", subtitle:"Řídit práci, ne být řízen/a prací",
+    icon:"🎯", color:"#4ECDC4", xp:100,
+    theory:`Velká část pracovního stresu nevzniká z množství práce, ale z nejasnosti. Když není jasné co je cíl, co je priorita, co je hotové a co je blok — vzniká chaos.
+
+Profesionálně vedená práce má jinou podobu. Je vidět: čeho má být dosaženo, proč je to důležité, v jaké je to fázi, kdo je za co odpovědný a jaký je další krok.`,
+    tasks:[
+      {id:"2a",type:"open",prompt:"Vyber jeden hlavní pracovní proud. Napiš jeho cíl a jak se pozná úspěch.",placeholder:"Název: ...\nCíl: ...\nÚspěch vypadá takto: ...",long:true,xp:35},
+      {id:"2b",type:"open",prompt:"Co aktuálně blokuje postup? Napiš 2–3 konkrétní bloky a u každého jeden možný krok vpřed.",placeholder:"Blok 1: ... → Co s tím: ...\nBlok 2: ... → Co s tím: ...",long:true,xp:35},
+      {id:"2c",type:"open",prompt:"Napiš mini-report tohoto týdne: co se posunulo / co je hotové / co je blokované / co potřebuje rozhodnutí.",placeholder:"Posunulo se: ...\nHotové: ...\nBlokované: ...\nPotřebuje rozhodnutí: ...",long:true,xp:30}
+    ],
+    reflection:"Co ti nejvíc ulevilo, když ses podíval/a na práci takhle strukturovaně?",
+    badge:"Stratég práce"
+  },
+  {
+    id:3, title:"1:1 rozhovory", subtitle:"Mluvit včas, přesně, v bezpečném rámci",
+    icon:"💬", color:"#A78BFA", xp:100,
+    theory:`Mnoho problémů na pracovišti nevzniká proto, že by lidé nechtěli spolupracovat. Vznikají proto, že spolu nemluví včas, přesně a v bezpečném rámci.
+
+1:1 rozhovor pomáhá včas zachytit nejasnost, snižuje riziko domněnek, posiluje důvěru a pomáhá posouvat práci i vztah současně.`,
+    tasks:[
+      {id:"3a",type:"open",prompt:"Vyber jednu klíčovou pracovní osobu. Napiš: co funguje, co je nejasné, co by mělo zaznít.",placeholder:"Jméno/role: ...\nCo funguje: ...\nCo je nejasné: ...\nCo by mělo zaznít: ...",long:true,xp:30},
+      {id:"3b",type:"open",prompt:"Připrav 3 otázky pro nadcházející 1:1 rozhovor s touto osobou.",placeholder:"1. ...\n2. ...\n3. ...",long:true,xp:35},
+      {id:"3c",type:"open",prompt:"Po rozhovoru: co zaznělo nově? Co pomohlo? Co je další krok?",placeholder:"Zaznělo nově: ...\nCo pomohlo: ...\nDalší krok: ...",long:true,xp:35}
+    ],
+    reflection:"Jak může pravidelný 1:1 rozhovor předcházet zbytečnému chaosu?",
+    badge:"Mistr dialogu"
+  },
+  {
+    id:4, title:"Efektivní porady", subtitle:"Méně chaosu, více výstupů",
+    icon:"📋", color:"#F97316", xp:100,
+    theory:`Porada bez účelu je jen organizační zvyk. Profesionální schůzka musí mít jasně rozpoznatelnou funkci.
+
+Nejčastější typy: informační, koordinační, rozhodovací, řešící problém, kreativní. Jakmile se tyto typy míchají bez vedení, vzniká chaos, únava a rozplizlost.`,
+    tasks:[
+      {id:"4a",type:"choice",prompt:"Vzpomeň si na poslední poradu. Jaký byl její skutečný typ?",options:["Informační","Koordinační","Rozhodovací","Řešení problému","Kreativní","Smíšená bez vedení"],xp:20},
+      {id:"4b",type:"open",prompt:"Co na té poradě nefungovalo? Buď konkrétní.",placeholder:"Téma se odbočovalo, nebylo jasné co se rozhodlo, trvalo to 2× déle...",xp:35},
+      {id:"4c",type:"open",prompt:"Připrav kostru jedné nadcházející porady: cíl, 3 body, co se má rozhodnout, kdo co dál.",placeholder:"Cíl: ...\n1. ...\n2. ...\n3. ...\nRozhodnutí: ...\nDalší kroky: ...",long:true,xp:45}
+    ],
+    reflection:"Kde při vedení porad potřebuješ být pevnější?",
+    badge:"Facilitátor"
+  },
+  {
+    id:5, title:"Komunikace s respektem", subtitle:"Věcně, klidně, přesvědčivě",
+    icon:"🗣️", color:"#06B6D4", xp:100,
+    theory:`Komunikace ztrácí sílu přílišnou omluvností, zbytečným kroužením kolem pointy, neurčitostí a opatrnickými formulacemi.
+
+Respekt budí komunikace, která je věcná, přiměřeně stručná, jasná, klidná, odpovědná a ukotvená v realitě.`,
+    tasks:[
+      {id:"5a",type:"rewrite",prompt:"Přepiš tuto formulaci. Přímo, bez omluv a kroužení.",weak:"Nevím, jestli to má cenu zmiňovat, ale možná by se dalo zvážit, jestli bychom třeba...",placeholder:"Napiš to přímo...",hint:"Začni rovnou věcí. Žádné 'možná', 'nevím jestli', 'asi'.",xp:30},
+      {id:"5b",type:"open",prompt:"Vezmi jedno pracovní téma a vysvětli ho ve třech větách. Přesně a bez zbytečností.",placeholder:"Téma: ...\n\n1. ...\n2. ...\n3. ...",long:true,xp:35},
+      {id:"5c",type:"open",prompt:"Připrav formulaci doporučení. Měla by znít jako doporučení, ne jako nápad k uvážení.",placeholder:"Doporučuji..., protože... Navrhuji jako další krok...",xp:35}
+    ],
+    reflection:"Kde se k tobě ještě vrací zbytečná opatrnost v komunikaci?",
+    badge:"Přesvědčivý hlas"
+  },
+  {
+    id:6, title:"Hranice a zpětná vazba", subtitle:"Říct to, co se říkat musí",
+    icon:"🛡️", color:"#EC4899", xp:100,
+    theory:`Otevřená komunikace neznamená vypustit všechno, co cítíš. Znamená umět oddělit: fakta, interpretace, dopad, potřebu a návrh dalšího kroku.
+
+Právě toto oddělení dělá komunikaci použitelnou — bez agrese, bez úniku, bez zbytečného dramatu.`,
+    tasks:[
+      {id:"6a",type:"open",prompt:"Napiš jednu pracovní situaci, která zůstává neotevřená. Co se objektivně stalo? Jaký to mělo dopad?",placeholder:"Situace: ...\nCo se stalo (fakta): ...\nJaký to mělo dopad: ...",long:true,xp:30},
+      {id:"6b",type:"open",prompt:"Připrav formulaci pro otevření té situace. Struktura: Stalo se... → mělo to dopad... → potřebuji, aby příště...",placeholder:"Chci otevřít jednu konkrétní věc. Stalo se..., mělo to tento dopad... a potřebuji, abychom příště...",long:true,xp:40},
+      {id:"6c",type:"open",prompt:"Napiš situaci, kde potřebuješ říct 'ne'. Jak to formuluješ bez obrany?",placeholder:"V tuto chvíli držím tyto priority... Pokud se má přidat i toto, potřebujeme rozhodnout, co půjde níž.",xp:30}
+    ],
+    reflection:"Co bylo na otevřené komunikaci nejtěžší? Co ti pomohlo udržet věcnost?",
+    badge:"Odvážný mluvčí"
+  },
+  {
+    id:7, title:"Vyjednávání", subtitle:"Příprava rozhoduje",
+    icon:"🤝", color:"#10B981", xp:100,
+    theory:`Vyjednávání se nejčastěji kazí ve třech místech: chybí příprava, není jasný cíl a minimum, druhá strana je vnímána jen jako překážka.
+
+Když je příprava kvalitní, klesá vnitřní tlak a roste jistota. Vyjednávání není jen o penězích — vyjednává se o prioritách, čase, kapacitě, termínech i podpoře.`,
+    tasks:[
+      {id:"7a",type:"open",prompt:"Vyber jednu pracovní vyjednávací situaci. Napiš svůj cíl, ideální výsledek a minimum.",placeholder:"Téma: ...\nMůj cíl: ...\nIdeální výsledek: ...\nMoje minimum: ...",long:true,xp:35},
+      {id:"7b",type:"open",prompt:"Co pravděpodobně chce, chrání nebo se obává druhá strana? Napiš svůj odhad.",placeholder:"Druhá strana pravděpodobně chce: ...\nChrání: ...\nObává se: ...",long:true,xp:30},
+      {id:"7c",type:"open",prompt:"Připrav otevření tématu + reakci na odpor. Jak to řekneš, když řeknou 'ne'?",placeholder:"Otevření: ...\nKdyž řeknou ne, řeknu: ...",long:true,xp:35}
+    ],
+    reflection:"Jak se změnil tvůj vztah k odporu druhé strany po přípravě?",
+    badge:"Klidný vyjednavač"
+  },
+  {
+    id:8, title:"Prezentace myšlenky", subtitle:"Aby se podle toho mohlo rozhodnout",
+    icon:"📢", color:"#F59E0B", xp:100,
+    theory:`Slabé prezentace selhávají ne kvůli nedostatku informací, ale kvůli jejich nadbytku a nejasnému vedení.
+
+Profesionální prezentace stojí na pěti bodech: problém, dopad, návrh, co je potřeba, další krok. Nestačí mít dobrý obsah — je potřeba mít i strukturu a přesvědčivost.`,
+    tasks:[
+      {id:"8a",type:"open",prompt:"Vyber jedno pracovní téma. Napiš pětibodovou kostru prezentace.",placeholder:"Jaký problém řeším: ...\nJaký má dopad: ...\nMoje doporučení: ...\nCo je potřeba: ...\nDalší krok: ...",long:true,xp:35},
+      {id:"8b",type:"open",prompt:"Teď zkrať celé téma do tří vět. Žádné zbytečné intro ani omluvy.",placeholder:"Věta 1 (problém): ...\nVěta 2 (doporučení): ...\nVěta 3 (co potřebuji): ...",xp:30},
+      {id:"8c",type:"open",prompt:"Napiš silný závěr prezentace. Jasná žádost nebo výzva k akci.",placeholder:"Navrhuji, abychom se rozhodli pro... Do [datum] potřebuji...",xp:35}
+    ],
+    reflection:"Co nejvíc pomohlo zjednodušit sdělení?",
+    badge:"Přesvědčivý prezentátor"
+  },
+  {
+    id:9, title:"Práce s lidmi", subtitle:"Různí lidé, různý přístup",
+    icon:"🧭", color:"#8B5CF6", xp:100,
+    theory:`Napětí mezi lidmi často nevzniká kvůli špatnému úmyslu. Vzniká kvůli nesouladu stylů: někdo chce rychle k věci, někdo potřebuje kontext, někdo chce jistotu.
+
+Rozpoznat tyto rozdíly není měkká dovednost navíc. Je to praktická součást profesionální spolupráce.`,
+    tasks:[
+      {id:"9a",type:"open",prompt:"Vyber kolegu, se kterým vzniká tření. Jak komunikuje? Co je pro něj/ni důležité?",placeholder:"Jméno/role: ...\nJak komunikuje: ...\nCo je pro něj/ni důležité: ...\nNa co bývá citlivý/á: ...",long:true,xp:30},
+      {id:"9b",type:"open",prompt:"Co bývá spouštěč tření? Co může být na TVOJE straně?",placeholder:"Spouštěč: ...\nCo může být na mé straně: ...",xp:35},
+      {id:"9c",type:"open",prompt:"Co příště uděláš jinak? Jak přizpůsobíš komunikaci tomuto člověku?",placeholder:"Příště udělám: ...\nOčekávaná reakce: ...\nPozná se to tak, že: ...",long:true,xp:35}
+    ],
+    reflection:"Co nového sis uvědomil/a o svém vlastním komunikačním stylu?",
+    badge:"Empatický spolupracovník"
+  },
+  {
+    id:10, title:"Energie a udržitelnost", subtitle:"Systém, ne jen přežívání",
+    icon:"🔋", color:"#EF4444", xp:100,
+    theory:`Stres nevzniká jen z množství úkolů. Roste tam, kde se spojuje: nejasnost, odkládání obtížných rozhovorů, slabé hranice, přetížení bez priorit.
+
+Dlouhodobě udržitelné fungování vyžaduje systém, ne jen odpočinek mezi dvěma přetíženými obdobími.`,
+    tasks:[
+      {id:"10a",type:"open",prompt:"Co tě v práci zbytečně bere energii? Napiš 3–5 konkrétních věcí.",placeholder:"1. ...\n2. ...\n3. ...",long:true,xp:25},
+      {id:"10b",type:"open",prompt:"Napiš své první signály přetížení — jak poznáš, že jedeš přes hranu?",placeholder:"1. ...\n2. ...\n3. ...",xp:35},
+      {id:"10c",type:"open",prompt:"Napiš svůj anti-chaos protokol: když je toho moc, udělám nejdřív... přestanu dělat... a řeknu si...",placeholder:"Udělám nejdřív: ...\nPřestanu dělat: ...\nŘeknu si: ...\nMoje minimální funkční verze dne: ...",long:true,xp:40}
+    ],
+    reflection:"Jaké jedno pravidlo udržitelnosti chceš držet opravdu důsledně?",
+    badge:"Mistr dlouhé hry"
+  }
+];
+
+const LEVELS = [
+  {min:0,   max:199,  name:"Nováček",    color:"#9CA3AF"},
+  {min:200, max:399,  name:"Praktikant", color:"#60A5FA"},
+  {min:400, max:599,  name:"Specialista",color:"#34D399"},
+  {min:600, max:799,  name:"Senior",     color:"#A78BFA"},
+  {min:800, max:999,  name:"Expert",     color:"#F59E0B"},
+  {min:1000,max:9999, name:"Mistr",      color:"#EF4444"},
+];
+
+// ═══════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════
+const KEY = "pgame_v2";
+let S = {totalXp:0, completedChapters:[], earnedBadges:[], answers:{}};
+let cid = null, tidx = 0, choice = null;
+
+function load(){ try{ const r=localStorage.getItem(KEY); if(r) S=JSON.parse(r); }catch{} }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch{} }
+function getLevel(xp){ return LEVELS.find(l=>xp>=l.min&&xp<=l.max)||LEVELS[LEVELS.length-1]; }
+function xpPct(xp){ const l=getLevel(xp),i=LEVELS.findIndex(x=>x.min===l.min),n=LEVELS[i+1]; return n?((xp-l.min)/(n.min-l.min))*100:100; }
+
+// ═══════════════════════════════════════════════════════════════════
+// PAGES
+// ═══════════════════════════════════════════════════════════════════
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function setAccent(color){
+  document.documentElement.style.setProperty('--accent', color);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// HOME
+// ═══════════════════════════════════════════════════════════════════
+function goHome(){ renderHome(); showPage('home'); }
+
+function renderHome(){
+  const lv=getLevel(S.totalXp);
+  el('home-level-name').textContent=lv.name;
+  el('home-level-name').style.color=lv.color;
+  el('home-xp').textContent=S.totalXp+' XP';
+  el('home-xp-fill').style.width=xpPct(S.totalXp)+'%';
+  el('home-xp-fill').style.background=lv.color;
+  el('home-badges-count').textContent=S.earnedBadges.length+'/10 odznaků';
+  el('home-badges-row').innerHTML=S.earnedBadges.map(b=>`<span class="badge-chip">${b}</span>`).join('');
+
+  el('chapter-list').innerHTML=CHAPTERS.map((ch,i)=>{
+    const done=S.completedChapters.includes(ch.id);
+    const avail=i===0||S.completedChapters.includes(CHAPTERS[i-1].id);
+    return `<div class="chapter-item ${done?'done':''} ${avail?'available':'locked'}"
+      style="--item-color:${ch.color}"
+      onclick="${avail?`openChapter(${ch.id})`:''}"
+      onmouseenter="${avail?`this.style.borderColor='${ch.color}66'`:''}"
+      onmouseleave="${avail?`this.style.borderColor=''`:''}"
+    >
+      <div class="ch-icon" style="${done?`background:${ch.color}22`:''}">${done?'✓':ch.icon}</div>
+      <div class="ch-meta">
+        <div class="ch-num">KOL ${ch.id}${done?` · <span style="color:${ch.color}">DOKONČENO</span>`:''}</div>
+        <div class="ch-title">${ch.title}</div>
+        <div class="ch-sub">${ch.subtitle}</div>
+      </div>
+      <div class="ch-xp" style="${done?`color:${ch.color}`:''}">${ch.xp} XP</div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// THEORY
+// ═══════════════════════════════════════════════════════════════════
+function openChapter(id){
+  cid=id; tidx=0; choice=null;
+  showTheory();
+}
+
+function showTheory(){
+  const ch=CHAPTERS.find(c=>c.id===cid);
+  setAccent(ch.color);
+  el('theory-pill').textContent=`Kolo ${ch.id} z ${CHAPTERS.length}`;
+  el('theory-pill').style.cssText=`color:${ch.color};border-color:${ch.color}44;background:${ch.color}11`;
+  el('theory-icon').textContent=ch.icon;
+  el('theory-title').textContent=ch.title;
+  el('theory-subtitle').textContent=ch.subtitle;
+  el('theory-text').textContent=ch.theory;
+  el('theory-btn').style.background=ch.color;
+  el('theory-pills').innerHTML=ch.tasks.map((t,i)=>
+    `<span style="background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:5px 12px;font-family:var(--mono);font-size:0.7rem;color:var(--text3);">Výzva ${i+1} · ${t.xp} XP</span>`
+  ).join('')+`<span style="background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:5px 12px;font-family:var(--mono);font-size:0.7rem;color:var(--text3);">Reflexe · 20 XP</span>`;
+  showPage('theory');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TASKS
+// ═══════════════════════════════════════════════════════════════════
+function startTasks(){ renderTask(); showPage('task'); }
+
+function renderTask(){
+  const ch=CHAPTERS.find(c=>c.id===cid);
+  const task=ch.tasks[tidx];
+  choice=null;
+  setAccent(ch.color);
+
+  el('task-dots').innerHTML=ch.tasks.map((_,i)=>
+    `<div class="dot ${i<tidx?'done':i===tidx?'active':''}"></div>`
+  ).join('');
+  el('task-counter').textContent=`${tidx+1}/${ch.tasks.length}`;
+
+  const typeNames={rewrite:'Přepiš',choice:'Vyber',open:'Napiš'};
+  const tl=el('task-type-label');
+  tl.textContent=typeNames[task.type]||'Výzva';
+  tl.style.cssText=`padding:3px 10px;border-radius:4px;border:1px solid;display:inline-block;color:${ch.color};border-color:${ch.color}44;background:${ch.color}11`;
+
+  el('task-prompt').textContent=task.prompt;
+
+  const wb=el('task-weak-box');
+  if(task.weak){ wb.style.display='block'; el('task-weak-text').textContent=`"${task.weak}"`; }
+  else wb.style.display='none';
+
+  const choicesDiv=el('task-choices');
+  const ta=el('task-textarea');
+  if(task.type==='choice'){
+    choicesDiv.style.display='block'; ta.style.display='none';
+    choicesDiv.innerHTML=task.options.map(o=>
+      `<button class="choice-btn" onclick="selectChoice(this,'${o}')">${o}</button>`
+    ).join('');
+  } else {
+    choicesDiv.style.display='none'; ta.style.display='block';
+    ta.value=''; ta.placeholder=task.placeholder||''; ta.rows=task.long?7:4; ta.disabled=false;
+  }
+
+  const hint=el('task-hint');
+  if(task.hint){ hint.style.display='block'; hint.textContent='💡 '+task.hint; }
+  else hint.style.display='none';
+
+  el('task-confirmed').style.display='none';
+  el('task-submit-btn').style.display='block';
+  el('task-submit-btn').style.background=ch.color;
+  el('task-submit-btn').textContent=`Potvrdit odpověď · ${task.xp} XP`;
+  el('task-next-btn').style.display='none';
+  el('task-next-btn').style.background=ch.color;
+  el('task-next-btn').textContent=tidx<ch.tasks.length-1?'Další výzva →':'Přejít k reflexi →';
+}
+
+function selectChoice(btn, val){
+  document.querySelectorAll('.choice-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  choice=val;
+}
+
+function submitTask(){
+  const ch=CHAPTERS.find(c=>c.id===cid);
+  const task=ch.tasks[tidx];
+  const ans=task.type==='choice'?choice:el('task-textarea').value.trim();
+  if(!ans) return;
+  S.answers[`${ch.id}_${task.id}`]=ans;
+  save();
+  if(task.type!=='choice') el('task-textarea').disabled=true;
+  el('task-confirmed').style.display='block';
+  el('task-submit-btn').style.display='none';
+  el('task-next-btn').style.display='block';
+  floatXp(task.xp);
+}
+
+function nextTask(){
+  const ch=CHAPTERS.find(c=>c.id===cid);
+  S.totalXp+=ch.tasks[tidx].xp;
+  save();
+  if(tidx<ch.tasks.length-1){ tidx++; renderTask(); }
+  else showReflection();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// REFLECTION
+// ═══════════════════════════════════════════════════════════════════
+function showReflection(){
+  const ch=CHAPTERS.find(c=>c.id===cid);
+  setAccent(ch.color);
+  el('refl-subtitle').textContent=`Kolo ${ch.id}: ${ch.title}`;
+  el('refl-question').textContent=ch.reflection;
+  el('refl-textarea').value='';
+  el('refl-btn').style.background=ch.color;
+  el('refl-card').style.borderColor=ch.color+'44';
+  showPage('reflection');
+}
+
+function submitReflection(){
+  const val=el('refl-textarea').value.trim();
+  if(!val) return;
+  const ch=CHAPTERS.find(c=>c.id===cid);
+  S.answers[`${ch.id}_reflection`]=val;
+  if(!S.completedChapters.includes(ch.id)){ S.completedChapters.push(ch.id); S.totalXp+=20; }
+  if(!S.earnedBadges.includes(ch.badge)) S.earnedBadges.push(ch.badge);
+  save();
+  showSummary();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SUMMARY
+// ═══════════════════════════════════════════════════════════════════
+function showSummary(){
+  const ch=CHAPTERS.find(c=>c.id===cid);
+  setAccent(ch.color);
+  el('sum-title').textContent=`Kolo ${ch.id} dokončeno!`;
+  el('sum-sub').textContent=ch.title;
+  el('sum-badge-box').style.cssText=`border:1px solid ${ch.color}44;background:${ch.color}0d;border-radius:10px;padding:20px;text-align:center;margin-bottom:20px;`;
+  el('sum-badge-name').textContent=ch.badge;
+  el('sum-badge-name').style.color=ch.color;
+  const lv=getLevel(S.totalXp);
+  el('sum-level').textContent=lv.name;
+  el('sum-level').style.color=lv.color;
+  el('sum-xp').textContent=S.totalXp+' XP';
+  el('sum-xp-fill').style.width=xpPct(S.totalXp)+'%';
+  el('sum-xp-fill').style.background=lv.color;
+  el('sum-progress').textContent=`Dokončeno ${S.completedChapters.length} z ${CHAPTERS.length} kol`;
+  el('sum-btn').style.background=ch.color;
+  el('sum-btn').textContent=S.completedChapters.length===CHAPTERS.length?'Zobrazit přehled':'Přejít na další kolo →';
+  floatXp(20);
+  showPage('summary');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════════════
+function el(id){ return document.getElementById(id); }
+
+function floatXp(n){
+  const d=document.createElement('div');
+  d.className='xp-float';
+  d.textContent='+'+n+' XP';
+  document.getElementById('xp-float-container').appendChild(d);
+  setTimeout(()=>d.remove(), 1500);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════════════════
+load();
+renderHome();
+</script>
+</body>
+</html>
