@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Catering EXPO – interaktivní přehled</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --panel: #111827;
+    --text: #e5e7eb;
+    --muted: #94a3b8;
+    --accent: #22c55e;
+    --accent2: #38bdf8;
+    --warn: #f59e0b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: linear-gradient(180deg, #0b1220 0%, #0f172a 100%);
+    color: var(--text);
+  }
+  .wrap { max-width: 1400px; margin: 0 auto; padding: 24px; }
+  h1 { margin: 0 0 8px 0; font-size: 32px; }
+  .sub { color: var(--muted); margin-bottom: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 20px; }
+  .card {
+    background: rgba(17,24,39,.88);
+    border: 1px solid rgba(148,163,184,.18);
+    border-radius: 18px;
+    padding: 18px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.18);
+    backdrop-filter: blur(8px);
+  }
+  .card h3 { margin: 0 0 6px 0; font-size: 14px; color: var(--muted); font-weight: 600; text-transform: uppercase; }
+  .big { font-size: 28px; font-weight: 800; }
+  .small { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .tab {
+    border: 1px solid rgba(148,163,184,.18);
+    background: rgba(30,41,59,.8);
+    color: var(--text);
+    border-radius: 999px;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .tab.active { background: linear-gradient(135deg, #16a34a, #0ea5e9); border-color: transparent; }
+  .tools { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+  input, select {
+    background: rgba(15,23,42,.9);
+    color: var(--text);
+    border: 1px solid rgba(148,163,184,.24);
+    border-radius: 12px;
+    padding: 10px 12px;
+  }
+  .panel {
+    background: rgba(17,24,39,.92);
+    border: 1px solid rgba(148,163,184,.18);
+    border-radius: 18px;
+    overflow: hidden;
+  }
+  .table-wrap { overflow: auto; max-height: 68vh; }
+  table { width: 100%; border-collapse: collapse; min-width: 900px; }
+  thead th { position: sticky; top: 0; background: #111827; z-index: 2; }
+  th, td { padding: 12px 14px; border-bottom: 1px solid rgba(148,163,184,.12); vertical-align: top; text-align: left; }
+  th { color: #cbd5e1; font-size: 13px; text-transform: uppercase; cursor: pointer; }
+  tbody tr:hover { background: rgba(30,41,59,.45); }
+  .right { text-align: right; white-space: nowrap; }
+  .badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    background: rgba(34,197,94,.12);
+    color: #86efac;
+    border: 1px solid rgba(34,197,94,.28);
+  }
+  .bars { display: grid; gap: 14px; margin: 8px 0; }
+  .bar-row { display: grid; grid-template-columns: 240px 1fr 110px; gap: 12px; align-items: center; }
+  .bar { height: 14px; border-radius: 999px; background: rgba(148,163,184,.12); overflow: hidden; }
+  .fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #22c55e, #38bdf8); }
+  .section { margin: 18px 0 26px; }
+  .note {
+    padding: 12px 14px;
+    border-left: 4px solid var(--warn);
+    background: rgba(245,158,11,.08);
+    border-radius: 12px;
+    color: #fde68a;
+  }
+  @media (max-width: 1100px) {
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .bar-row { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 700px) {
+    .grid { grid-template-columns: 1fr; }
+    h1 { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Catering EXPO – interaktivní vizualizace</h1>
+  <div class="sub">HTML přehled z Excelu. Přepínání mezi záložkami, filtrování, řazení a rychlé srovnání cen.</div>
+
+  <div class="grid" id="kpis"></div>
+
+  <div class="section card">
+    <h3>Cenové srovnání</h3>
+    <div class="bars" id="bars"></div>
+    <div class="small">Porovnání podle ceny za osobu nebo celkové ceny podle dostupných údajů ze sheetu „Srovnání“.</div>
+  </div>
+
+  <div class="section">
+    <div class="tabs" id="tabs"></div>
+    <div class="tools">
+      <input id="search" type="text" placeholder="Hledat položku, sekci, firmu…" />
+      <select id="sheetSelect"></select>
+      <select id="viewMode">
+        <option value="all">Všechny řádky</option>
+        <option value="priced">Jen řádky s cenou</option>
+      </select>
+    </div>
+
+    <div class="panel">
+      <div class="table-wrap">
+        <table id="sheetTable">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="section note">
+    Poznámka: Rychlík je v podkladech původně pro 210 osob a s DPH; ve srovnání je přepočtený na 350 osob bez DPH. U-catering zahrnuje Gril nabídku 1–3.
+  </div>
+</div>
+
+<script>
+const workbook = {"Srovnání": [["Porovnání cateringových nabídek pro EXPO", null, null, null, null, null, null, null], ["Všechny částky jsou bez DPH. U Rychlíka je cena přepočítaná z 210 na 350 osob a očištěná od 12 % DPH.", null, null, null, null, null, null, null], ["Nabídka", "Společnost", "Počet osob", "Cena s obsluhou", "Cena bez obsluhy", "Cena/os s obsluhou", "Cena/os bez obsluhy", "Poznámka"], ["Excellent catering", "Excellent catering", 350, 136500, 101500, null, null, "Ceny bez DPH, uvedeno přímo v nabídce."], ["Butcher's varianta I", "Butcher's Catering & Events", 350, 117750, 110250, null, null, "Obsluha 7 500 Kč navíc; nápoje dle skutečné konzumace."], ["Butcher's varianta II", "Butcher's Catering & Events", 350, 96125, 96125, null, null, "Bez samostatně vyčíslené obsluhy; nápoje dle skutečné konzumace."], ["Rychlík catering", "RCATERING s.r.o.", 350, null, 197023.81, null, null, "Přepočet z nabídky pro 210 osob; původní ceny včetně 12 % DPH."], ["Gril nabídka č. 1", "U-catering", 350, 177320, null, null, null, "Celková cena ze souboru; obsluha a inventář jsou součástí rozpočtové části."], ["Gril nabídka č. 2", "U-catering", 350, 217039, null, null, null, "Celková cena ze souboru; obsluha a inventář jsou součástí rozpočtové části."], ["Gril nabídka č. 3", "U-catering", 350, 238868, null, null, null, "Celková cena ze souboru; obsluha a inventář jsou součástí rozpočtové části."]], "Excellent": [["Excellent", null, null, null, null], ["Zdroj: Excellent catering.docx", null, null, null, null], ["Obsah nabídky a obě varianty ceny.", null, null, null, null], ["Sekce", "Položka", "Množství / osoby", "Jednotková cena", "Cena celkem"], ["Studený raut", "Mini croissanty (máslové, čokoládové)", null, null, null], ["Studený raut", "Slané mini pečivo (šunka, sýr, pomazánky)", null, null, null], ["Studený raut", "Finger food sendviče", null, null, null], ["Studený raut", "Čerstvé ovocné mísy", null, null, null], ["Studený raut", "Zeleninové mísy s dipy", null, null, null], ["Studený raut", "Mini dezerty (panna cotta, tartaletky, brownies)", null, null, null], ["Nápoje", "Káva z profesionálního kávovaru", null, null, null], ["Nápoje", "Čaj", null, null, null], ["Nápoje", "Voda perlivá / neperlivá", null, null, null], ["Nápoje", "Džusy", null, null, null], ["Nápoje", "Fresh citronová voda", null, null, null], ["Varianta 1", "Kompletní catering včetně obsluhy", 350, 390, 136500], ["Varianta 1", "Mobilní kávový servis", null, null, null], ["Varianta 1", "Inventář (stoly, ubrusy, nádobí, sklo)", null, null, null], ["Varianta 1", "Profesionální obsluha (6–8 osob)", null, null, null], ["Varianta 1", "Průběžné doplňování občerstvení", null, null, null], ["Varianta 1", "Instalace a úklid", null, null, null], ["Varianta 2", "Kompletní catering bez obsluhy", 350, 290, 101500], ["Varianta 2", "Dodání připraveného občerstvení", null, null, null], ["Varianta 2", "Základní inventář", null, null, null], ["Varianta 2", "Instalace cateringových stolů", null, null, null], ["Varianta 2", "Obsluha a doplňování občerstvení zajištěno klientem", null, null, null], ["Doplňky", "Čerstvé smoothies / fresh bar", null, null, null], ["Doplňky", "Barista kávový koutek", null, null, null], ["Doplňky", "Teplý brunch (míchaná vejce, slané quiche)", null, null, null], ["Doplňky", "Branding dezertů / makronek logem firmy", null, null, null], ["Varianta 1 celkem (s obsluhou)", null, null, null, 136500], ["Cena / osoba varianta 1", null, null, null, null], ["Varianta 2 celkem (bez obsluhy)", null, null, null, 101500], ["Cena / osoba varianta 2", null, null, null, null]], "Butchers I": [["Butchers I", null, null, null, null], ["Zdroj: KILI VARIANTA MENU I 350os. 26.5.2026.pdf", null, null, null, null], ["Varianta I. Nápoje jsou účtované dle skutečné konzumace.", null, null, null, null], ["Sekce", "Položka", "Množství", "Specifikace / cena za ks", "Cena celkem"], ["Párty snack", "Mini domácí brioška s mozzarellou, tomaty, pestem a bazalkou", 100, "90 g", null], ["Párty snack", "Mini domácí brioška s uzeným lososem a dipem aioli", 100, "90 g", null], ["Párty snack", "Mini domácí brioška s vepřovou šunkou, sýrem, dipem aioli a tomaty", 100, "90 g", null], ["Párty snack", "Mini domácí brioška s Ventricina, nakládanou okurkou, jalapeno a americkým dipem", 100, "90 g", null], ["Párty snack", "Mini domácí brioška se sýrem hermelínem, dipem aioli a rukolou", 100, "90 g", null], ["Párty snack", "Mini domácí brioška s hovězí šunkou, chřestem, dipem aioli a rukolou", 100, "90 g", null], ["Párty snack", "Mini domácí brioška s tradiční prosciuttem a rukolou", 100, "90 g", null], ["Buchty a koláče", "Svatební buchta", 175, "80 g", null], ["Buchty a koláče", "Tlačený hodový koláč s tvarohem a borůvkami / ořechy", 350, "90 g", null], ["Ovoce", "Jablko Granny Smith, banán, mandarinka", 100, "100 g", null], ["Teplý bufet / polévka", "Gulaschsuppe + bavorský preclík", 50, "0,2 l + 100 g", null], ["Teplý bufet", "Pečená vepřová kýta Chovaneček na švestkách + coleslaw + kváskový chléb", 75, "150 g + 150 g", null], ["Teplý bufet", "Stripsy z kuřecího masa + grenaille salát s pažitkou", 50, "150 g + 150 g", null], ["Nápoje - dle spotřeby", "Domácí limonáda limetová / malinová / mango", null, "0,2 l", 30], ["Nápoje - dle spotřeby", "Radegast Birell nealkoholické pivo", null, "0,33 l", 40], ["Nápoje - dle spotřeby", "Coca Cola / Zero", null, "0,33 l", 45], ["Nápoje - dle spotřeby", "Minerální voda GOCCIA perlivá", null, null, 20], ["Nápoje - dle spotřeby", "Pramenitá voda v karafách s citrusy", null, null, 0], ["Teplé nápoje - dle spotřeby", "Espresso / čaj / cukr / smetana", null, null, 55], ["Obsluha", "Číšník, servírka, kuchař na teplé pokrmy", 5, null, null], ["Obsluha", "Supervize", 1, null, null], ["Kalkulace", "Cateringový servis dle nabídky", null, null, 110250], ["Kalkulace", "Odborná obsluha a supervize", null, null, 7500], ["Cateringový servis dle nabídky", null, null, null, 110250], ["Odborná obsluha a supervize", null, null, null, 7500], ["Celkem s obsluhou", null, null, null, null], ["Cena / osoba", null, null, null, null]], "Butchers II": [["Butchers II", null, null, null, null], ["Zdroj: KILI VARIANTA MENU II 350os. 26.5.2026.pdf", null, null, null, null], ["Varianta II. Nápoje jsou účtované dle skutečné konzumace.", null, null, null, null], ["Sekce", "Položka", "Množství", "Specifikace / cena za ks", "Cena celkem"], ["Apetizer canapes", "S hovězí šunkou", 100, "50 g", null], ["Apetizer canapes", "S černým kaviárem", 100, "50 g", null], ["Apetizer canapes", "Se salátem caprese", 100, "50 g", null], ["Apetizer canapes", "Se šunkou a vejcem", 100, "50 g", null], ["Apetizer canapes", "S jemně pikantním salámem a zeleninou", 100, "50 g", null], ["Apetizer canapes", "S ančovičkou", 100, "50 g", null], ["Apetizer canapes", "S uzeným lososem a máslem", 100, "50 g", null], ["Párty snack", "Mini domácí brioška s vepřovou šunkou, sýrem, dipem aioli a tomaty", 100, "90 g", null], ["Párty snack", "Mini domácí brioška s Ventricina, nakládanou okurkou, jalapeno a americkým dipem", 100, "90 g", null], ["Párty snack", "Mini domácí brioška se sýrem hermelínem, dipem aioli a rukolou", 75, "90 g", null], ["Párty snack", "Mini domácí brioška s tradiční prosciuttem a rukolou", 75, "90 g", null], ["Teplý bufet / polévka", "Gulaschsuppe + bavorský preclík", 75, "0,2 l + 100 g", null], ["Buchty a koláče", "Svatební buchta", 100, "80 g", null], ["Buchty a koláče", "Tlačený hodový koláč s tvarohem a borůvkami / ořechy", 250, "90 g", null], ["Ovoce", "Jablko Granny Smith, banán, mandarinka", 50, "100 g", null], ["Nápoje - dle spotřeby", "Radegast Birell nealkoholické pivo", null, "0,33 l", 40], ["Nápoje - dle spotřeby", "Juice CAPPY pomeranč / jablko / multivitamín", null, "0,2 l", 35], ["Nápoje - dle spotřeby", "Coca Cola / Zero", null, "0,33 l", 45], ["Nápoje - dle spotřeby", "Minerální voda GOCCIA perlivá", null, "0,2 l", 20], ["Nápoje - dle spotřeby", "Pramenitá voda v karafách s citrusy", null, null, 0], ["Teplé nápoje - dle spotřeby", "Espresso / čaj / cukr / smetana", null, null, 55], ["Kalkulace", "Cateringový servis dle nabídky", null, null, 96125], ["Cateringový servis dle nabídky", null, null, null, 96125], ["Cena / osoba", null, null, null, null]], "Rychlik": [["Rychlík catering", null, null, null, null, null], ["Zdroj: Cenova_nabidka_catering_26_5_2026.xlsx + Rychlik_catering.docx", null, null, null, null, null], ["Původní nabídka je pro cca 210 osob a ceny jsou včetně 12 % DPH. Níže je původní položkový rozpad z XLSX.", null, null, null, null, null], ["Kategorie", "Položka", "Množství", "Jednotka", "Cena celkem (vč. DPH)", "Jednotková cena"], ["Teplé", "Gulášová polévka s masem + pečivo", 100, "porce", 8000, 80], ["Teplé", "Chlebíčky klasik (mix druhů)", 100, "ks", 6000, 60], ["Teplé", "Grilované datle s čedarem", 50, "ks", 1750, 35], ["Teplé", "Cherry rajčata s mozzarellou", 50, "ks", 2250, 45], ["Teplé", "Špízek s italským salámem", 50, "ks", 2250, 45], ["Teplé", "Košíček s lososem a kaviárem", 50, "ks", 2400, 48], ["Teplé", "Mini chlebíček se šunkou", 50, "ks", 2500, 50], ["Teplé", "Mini chlebíček s prosciuttem", 50, "ks", 2500, 50], ["Teplé", "Mini chlebíček s gorgonzolou", 50, "ks", 2500, 50], ["Teplé", "Mini croissanty (mix)", 40, "ks", 2320, 58], ["Teplé", "Kaiserky (mix)", 40, "ks", 2000, 50], ["Teplé", "Quiché (4 druhy po 30 ks)", 120, "ks", 13200, 110], ["Teplé", "Brioška s bůčkem", 30, "ks", 3000, 100], ["Teplé", "Brioška s kachními prsy", 30, "ks", 3000, 100], ["Teplé", "Mini hamburger", 30, "ks", 3000, 100], ["Teplé", "Brioška s camembertem", 30, "ks", 2700, 90], ["Teplé", "Kuřecí strips v sendviči", 60, "ks", 3600, 60], ["Teplé", "Vepřová panenka v sendviči", 60, "ks", 3600, 60], ["Teplé", "Chléb s pomazánkami a masem (8 druhů po 50 ks)", 400, "ks", 21500, 53.75], ["Ovoce", "Ovocná mísa", 10, "kg", 3500, 350], ["Zelenina", "Crudité s hummusem", 10, "kg", 3900, 390], ["Dezert", "Koláčky", 150, "ks", 3300, 22], ["Dezert", "Přesňáky", 50, "ks", 1500, 30], ["Dezert", "Bavorské vdolky", 50, "ks", 3000, 60], ["Dezert", "Banánový chlebíček (vegan + klasický)", 60, "ks", 3000, 50], ["Dezert", "Croissanty s krémem", 60, "ks", 2700, 45], ["Dezert", "Táč s pudinkem", 80, "ks", 2160, 27], ["Dezert", "Mini koblížek", 80, "ks", 2000, 25], ["Dezert", "Kokosovo-čoko kostka", 80, "ks", 2000, 25], ["Dezert", "Jablečný závin", 80, "ks", 3120, 39], ["Dezert", "Cup Cake (klasik + vegan)", 80, "ks", 5650, 70.62], ["Dezert", "Brownies + Blondies", 100, "ks", 4500, 45], ["Ostatní", "Doprava", null, null, 1000, null], ["Ostatní", "Příprava a úklid", null, null, 3000, null], [null, null, null, "CELKEM", 132400, null], ["Původní celkem pro 210 osob (vč. DPH)", null, null, null, null, null], ["Původní celkem bez DPH", null, null, null, null, null], ["Přepočet na 350 osob bez DPH", null, null, null, null, null], ["Cena / osoba pro 350 osob", null, null, null, null, null]], "U-catering – nabídka 1": [["Společnost", "U-catering", null, null, null], ["Zdroj: Novotná Klára 26.5. 2026 gril - nabidka č.1.xls", null, null, null, null], ["Položkový přepis nabídky z původního XLS.", null, null, null, null], ["Sekce", "Položka", "Množství", "Cena za 1 ks / poznámka", "Cena celkem"], ["Nabídka dne 26.5.2026 počet osob 350 celkem", null, null, null, null], ["Novotná Klára Klara.Novotna@kili.cz", null, null, null, null], ["v čase 9:00–13:00.", null, null, null, null], ["Místo konání - ?", null, null, null, null], ["Nabídka č. 1", null, null, null, null], ["Nabídka č. 1", null, null, null, null], ["Studený raut", null, null, null, null], ["Studený raut", "Jednohubky 4 druhy", 350, 12, 4200], ["Studený raut", "1ks - Šunko/sýrový chlebíček", 35, 44, 1540], ["Studený raut", "1ks - Tapas - Mini caprese (mozzarella s cherry rajčaty, pesto)", 35, 60, 2100], ["Studený raut", "1ks - Tapas - Anglický roastbeef na portských cibulkách a ciabatě", 35, 75, 2625], ["Studený raut", "1ks - Tapas - Kreveta na bagetce s koprovou salsou", 35, 75, 2625], ["Studený raut", "1ks - Tapas - Konfitované kachní prsíčko na hruškovém rozvaru a briošce", 35, 75, 2625], ["Studený raut", "1ks - Tapas - Zvěřinová paštika s brusinkovým želé", 35, 69, 2415], ["Studený raut", "5ks - Mini wrap – Španělské chorizo, sýr, salát, pomazánka", 5, 275, 1375], ["Studený raut", "4ks - Šunkový mini toast – šunka, sýr, pomazánka, salát", 5, 168, 840], ["Studený raut", "1kg - Hovězí tatarák se zeleninou a topinkami s česnekem", 4, 1825, 7300], ["Studený raut", "1,5 kg Šunkovo - sýrová nářezová mísa, zdobená květy a ovocem", 4, 1295, 5180], ["Studený raut", "2,5kg - ovocná mísa", 3, 1260, 3780], ["Studený raut", "1,5kg - Roládová mísa (sýrová, masová)", 3, 1597, 4791], ["Studený raut", "Pečivo - určitě výjde po celý den - (chleba, rohlíky, cereální rohlík, vícezrnné bagetky)", 1, 1500, 1500], ["Studený raut", "2kg - Zeleninová mísa", 3, 765, 2295], ["Studený raut", null, null, null, null], ["Grilování", null, null, null, null], ["Grilování", "100g - Kuřecí steak z prsní části", 100, 95, 9500], ["Grilování", "100g - Vepřová krkovička steak", 100, 109, 10900], ["Grilování", "1ks - Grilovaný hermelín", 150, 85, 12750], ["Grilování", "100g - Masový špíz - kuřecí a vepřové kousky prokládané čerstvou zeleninou", 100, 98, 9800], ["Grilování", "100g - brazilská bílá ryba", 100, 135, 13500], ["Grilování", "70g - Hovězí mini burger , salát, rajče, okurek, cibule, dresink, sýr", 200, 110, 22000], ["Grilování", "3kg - Grilovaná zelenina cuketa, lilek, rajče, paprika, cibule, mrkev.", 5, 1080, 5400], ["Grilování", "2kg - Řecký salát tzatziky", 5, 659, 3295], ["Grilování", "2kg - šopský salát", 5, 665, 3325], ["Grilování", "4 druhy dresingu + omáčka demi glace", 2, 850, 1700], ["Grilování", "celkem", null, null, 92170], ["Teplý raut", null, null, null, null], ["Teplý raut", "100g - Hovězí guláš s cibulí", 50, 154, 7700], ["Teplý raut", "50g - Kuřecí koktejlové řízečky", 100, 58, 5800], ["Teplý raut", "50g - Vepřové koktejlové řízečky", 100, 58, 5800], ["Teplý raut", "1ks - Pečená kuřecí palička (spodní stehno)", 100, 58, 5800], ["Teplý raut", "300 g Zapečený lilek plněný zeleninovou směsí s kuskusem, zapečený sýrem", 20, 195, 3900], ["Teplý raut", "2,5kg - Mísa bramborového salátu s majonézou", 3, 653, 1959], ["Teplý raut", "3kg - Šťouchané brambory s cibulkou a slaninou", 3, 600, 1800], ["Teplý raut", null, null, null, null], ["Sladký bar", null, null, null, null], ["Sladký bar", "domácí tvarohové koláčky", 300, 12, 3600], ["Sladký bar", "domácí jablečný závin", 300, 12, 3600], ["Sladký bar", "celkem", null, null, 7200], ["Další rozpočet rautu", null, null, null, null], ["Další rozpočet rautu", "doprava jedna cesta", 1, null, null], ["Další rozpočet rautu", "založení rautu před akcí 2x", 1, "200 kč/ 1 hod.", null], ["Další rozpočet rautu", "hlavní obsluha", 1, "250 kč/ 1hod.", null], ["Další rozpočet rautu", "obsluha  4x", 1, "200 kč/ 1 hod.", null], ["Další rozpočet rautu", "kuchař 2x", 1, "250 kč/ 1hod.", null], ["Další rozpočet rautu", "zapůjčení inventáře - dle dohody", 1, null, null], ["Další rozpočet rautu", "ubrus", 1, 88, null], ["Další rozpočet rautu", "rautová sukně", 1, 330, null], ["Další rozpočet rautu", "výčep - dvoupákový", 1, 660, null], ["Další rozpočet rautu", "gastro kávovar - zvládá espresso, cappuccino, latté", 1, 660, null], ["Další rozpočet rautu", "barové stolky včetně strečového ubrusu", 1, 350, null], ["Další rozpočet rautu", "rautový stůl 60x220", 1, 135, null], ["Další rozpočet rautu", "bedna ledu 25 kg", 1, 650, null], ["Další rozpočet rautu", "párty stan 3x3m - bílá barva", 1, 1500, null], ["Další rozpočet rautu", "sklizení rautu po akci 2x", 1, "200 kč/ 1 hod.", null], ["Další rozpočet rautu", "pronájem grilu - (vyčištění, propan butan)", 1, 2500, null], ["Další rozpočet rautu", "celkem", null, null, null], ["Nabídka č. 1 Celkem", null, null, null, null], ["Nabídka platná do konce roku 2026", null, null, null, null], ["Celkem dle nabídky", null, null, null, 177320], ["Cena / osoba", null, null, null, null]], "U-catering – nabídka 2": [["Společnost", "U-catering", null, null, null], ["Zdroj: Novotná Klára 26.5. 2026 gril - nabidka č.2.xls", null, null, null, null], ["Položkový přepis nabídky z původního XLS.", null, null, null, null], ["Sekce", "Položka", "Množství", "Cena za 1 ks / poznámka", "Cena celkem"], ["Nabídka dne 26.5.2026 počet osob 350 celkem", null, null, null, null], ["Novotná Klára Klara.Novotna@kili.cz", null, null, null, null], ["v čase 9:00–13:00.", null, null, null, null], ["Místo konání - ?", null, null, null, null], ["Nabídka č. 2", null, null, null, null], ["Studený raut", null, null, null, null], ["Studený raut", "1kg - Variace hovězího a lososového carpaccia s parmazánem a limetkou", 3, 1580, 4740], ["Studený raut", "1kg - Výběr sýrů s ovocem zdobený květy (nářezová mísa)", 3, 1295, 3885], ["Studený raut", "1,5kg - Výběr italských salámů a prosciutta s olivami a ovocem", 3, 1590, 4770], ["Studený raut", "1kg - Hovězí tatarák se zeleninou a topinkami s česnekem", 3, 1825, 5475], ["Studený raut", "60ks - Sushi set (maki, nigiri, uramaki, kikkoman, wasabi, nakládaný zázvor)", 3, 1820, 5460], ["Studený raut", "1ks - Tapas - Hummus kelímek se zeleninou", 35, 50, 1750], ["Studený raut", "1ks - Tapas - Mini croissant s marinovaným kuřecím prsíčkem", 35, 69, 2415], ["Studený raut", "1ks - Tapas - Slaná tartaletka – roastbeef s portskými cibulkami, cornichons", 35, 79, 2765], ["Studený raut", "1ks - Tapas - Konfitované kachní prsíčko na hruškovém rozvaru a briošce", 35, 75, 2625], ["Studený raut", "1ks - Tapas - Kreveta v panko strouhance & sweet chilli dip", 35, 75, 2625], ["Studený raut", "1ks - Tapas - Rolka z uzeného lososa plněná wasabi krémem, bagetka", 35, 79, 2765], ["Studený raut", "1ks - Tapas - Avokádové guacamole v misce s nachos", 35, 72, 2520], ["Studený raut", "5ks - Mini wrap – proscitto, sušená rajčata, rukola, sýr, pomazánka", 4, 300, 1200], ["Studený raut", "1,5kg - Ovocná mísa + čokoládová fontána", 2, 1925, 3850], ["Studený raut", "Pečivo - určitě výjde po celý den - (chleba, rohlíky, cereální rohlík, vícezrnné bagetky)", 1, 1500, 1500], ["Studený raut", "2kg - Zeleninová mísa", 2, 765, 1530], ["Studený raut celkem", null, null, null, null], ["Grilování", null, null, null, null], ["Grilování", "100g - Kuřecí steak z vykostěného stehna i s kůží", 100, 95, 9500], ["Grilování", "100g - Vepřová panenka steak", 100, 125, 12500], ["Grilování", "1ks - Grilovaný hermelín", 100, 82, 8200], ["Grilování", "100g - Striploin s tukovým krytím - z nízkého roštěnce", 100, 159, 15900], ["Grilování", "100g - Masový špíz - kuřecí a vepřové kousky prokládané čerstvou zeleninou", 100, 98, 9800], ["Grilování", "100g - Lososový steak - vyříznutý z filetu čerstvého chlazeného lososa", 100, 159, 15900], ["Grilování", "70g - Hovězí mini burger , salát, rajče, okurek, cibule, dresink, sýr", 150, 110, 16500], ["Grilování", "100g - Bavette – Flank steak -z boku (pupku)", 50, 135, 6750], ["Grilování", "3kg - Grilovaná zelenina cuketa, lilek, rajče, paprika, cibule, mrkev.", 5, 1080, 5400], ["Grilování", "3kg - pečené brambory na rozmarýnu", 5, 600, 3000], ["Grilování", "2kg - Salát coleslaw", 5, 659, 3295], ["Grilování", "2kg - šopský salát", 5, 665, 3325], ["Grilování", "4 druhy dresingu + omáčka demi glace", 2, 850, 1700], ["Grilování", "celkem", null, null, 111770], ["Teplý raut", null, null, null, null], ["Teplý raut", "50g - Kuřecí koktejlové řízečky", 100, 58, 5800], ["Teplý raut", "50g - Vepřové koktejlové řízečky", 100, 58, 5800], ["Teplý raut", "50g - Hovězí líčka na víně a kořenové zelenině", 100, 83, 8300], ["Teplý raut", "500g - Italské slávky na zelenině, česneku a bílém víně", 3, 989, 2967], ["Teplý raut", "300g - Pečené koleno na pivu", 25, 287, 7175], ["Teplý raut", "2,5kg - Mísa bramborového salátu s majonézou", 4, 653, 2612], ["Teplý raut", "3kg - Bramboráčky", 2, 600, 1200], ["Teplý raut", "3kg - Šťouchané brambory s cibulkou a slaninou", 2, 600, 1200], ["Teplý raut celkem", null, null, null, null], ["Sladký bar", null, null, null, null], ["Sladký bar", "Profiteroles (francouzský dezert)", 150, 10, 1500], ["Sladký bar", "nugátové minikoblížky", 100, 18, 1800], ["Sladký bar", "kopeček zmrzliny v kornoutu - více příchutí", 200, 30, 6000], ["Sladký bar", "Mini tiramisu", 80, 69, 5520], ["Sladký bar", "Šlehané mascarpone s lesním ovocem", 80, 69, 5520], ["Sladký bar", "celkem", null, null, 20340], ["Další rozpočet rautu", null, null, null, null], ["Další rozpočet rautu", "doprava jedna cesta", 1, null, null], ["Další rozpočet rautu", "založení rautu před akcí 2x", 1, "200 kč/ 1 hod.", null], ["Další rozpočet rautu", "hlavní obsluha", 1, "250 kč/ 1hod.", null], ["Další rozpočet rautu", "obsluha  4x", 1, "200 kč/ 1 hod.", null], ["Další rozpočet rautu", "kuchař 2x", 1, "250 kč/ 1hod.", null], ["Další rozpočet rautu", "zapůjčení inventáře - dle dohody", 1, null, null], ["Další rozpočet rautu", "ubrus", 1, 88, null], ["Další rozpočet rautu", "rautová sukně", 1, 330, null], ["Další rozpočet rautu", "výčep - dvoupákový", 1, 660, null], ["Další rozpočet rautu", "gastro kávovar - zvládá espresso, cappuccino, latté", 1, 660, null], ["Další rozpočet rautu", "barové stolky včetně strečového ubrusu", 1, 350, null], ["Další rozpočet rautu", "rautový stůl 60x220", 1, 135, null], ["Další rozpočet rautu", "bedna ledu 25 kg", 1, 650, null], ["Další rozpočet rautu", "párty stan 3x3m - bílá barva", 1, 1500, null], ["Další rozpočet rautu", "sklizení rautu po akci 2x", 1, "200 kč/ 1 hod.", null], ["Další rozpočet rautu", "pronájem grilu - (vyčištění, propan butan)", 1, 2500, null], ["Další rozpočet rautu", "celkem", null, null, null], ["Nabídka č. 2 Celkem", null, null, null, null], ["Nabídka platna do konce roku 2026", null, null, null, null], ["Celkem dle nabídky", null, null, null, 217039], ["Cena / osoba", null, null, null, null]], "U-catering – nabídka 3": [["Společnost", "U-catering", null, null, null], ["Zdroj: Novotná Klára 26.5. 2026 gril - nabidka č.3.xls", null, null, null, null], ["Položkový přepis nabídky z původního XLS.", null, null, null, null], ["Sekce", "Položka", "Množství", "Cena za 1 ks / poznámka", "Cena celkem"], ["Nabídka dne 26.5.2026 počet osob 350 celkem", null, null, null, null], ["Novotná Klára Klara.Novotna@kili.cz", null, null, null, null], ["v čase 9:00–13:00.", null, null, null, null], ["Místo konání - ?", null, null, null, null], ["Nabídka č. 3", null, null, null, null], ["studený raut", null, null, null, null], ["studený raut", "800g - Hovězího carpaccio zakápnuté olivovým olejem s parmazánem a limetkou", 3, 1340, 4020], ["studený raut", "1kg - Meloun cantaloupe/galia v kabátku z prosciutta", 2, 1295, 2590], ["studený raut", "1kg - Hovězí tatarák se zeleninou a topinkami s česnekem", 4, 1825, 7300], ["studený raut", "60ks - Sushi set (maki, nigiri, uramaki, kikkoman, wasabi, nakládaný zázvor)", 4, 1820, 7280], ["studený raut", "1ks - Kanadský humr na Martini s karamelizovanou zeleninou", 1, 2895, 2895], ["studený raut", "12ks - Otevírání bretaňských ústřic (šalotková zálivka, limeta)", 4, 1320, 5280], ["studený raut", "1,5kg - Výběr italských salámů a prosciutta s olivami a ovocem", 2, 1590, 3180], ["studený raut", "1kg - Výběr francouzských sýrů s hrozny, cornichons, džemem a krekry", 2, 1390, 2780], ["studený raut", "1ks - Tapas - Prosciutto na krostýně s pomazánkou sypané parmazánem", 25, 66, 1650], ["studený raut", "1ks - Tapas - Slaná tartaletka – kreveta s koprovou pěnou", 25, 79, 1975], ["studený raut", "1ks - Tapas - Mini croissant s uzeným lososem a koprovou pomazánkou", 25, 69, 1725], ["studený raut", "1ks - Tapas - Chlazená rajčata s domácím pestem a parmazánem", 25, 59, 1475], ["studený raut", "1ks - Tapas - Grilovaný lilek plněný kozím sýrem, bagetka", 25, 63, 1575], ["studený raut", "1ks - Tapas - Konfitované kachní prsíčko na hruškovém rozvaru a briošce", 25, 75, 1875], ["studený raut", "1ks - Tapas - Svatojakubská mušle se salátkem wakame", 25, 116, 2900], ["studený raut", "1ks - Tapas - Bruschetta se salátem z pečených paprik a s ančovičkami", 25, 75, 1875], ["studený raut", "1ks - Tapas - Lososový tataráček se šalotkou, limetkou a polníčkem", 25, 75, 1875], ["studený raut", "1ks - Tapas - Kuřecí terinka s proscuittem a tymiánovou cibulkou", 25, 69, 1725], ["studený raut", "1,5kg - Ovocná mísa + čokoládová fontána", 2, 1925, 3850], ["studený raut", "4ks - Italský mini toast – proscitto, sušená rajčata, rukola, sýr, pomazánka", 3, 208, 624], ["studený raut", "5ks - Mini wrap – španělské chorizo, sýr, salát, pomazánka", 3, 275, 825], ["studený raut", "Pečivo - určitě výjde po celý den - (chleba, rohlíky, cereální rohlík, vícezrnné bagetky)", 1, 1500, 1500], ["studený raut", "2kg - Zeleninová mísa", 2, 765, 1530], ["studený raut", "celkem", null, null, 62304], ["Grilování", null, null, null, null], ["Grilování", "100g - Steak z hovězí svíčkové - nejjemnější maso, nejoblíbenější z našeho menu", 50, 170, 8500], ["Grilování", "50g - Husi foie gras", 50, 123, 6150], ["Grilování", "100g - Grilovaný halloumi sýr", 50, 123, 6150], ["Grilování", "100g - Jehněčí kotletky s kostí", 50, 158, 7900], ["Grilování", "100g - Rumpsteak telecí z libového zadního masa mladého kusu", 50, 155, 7750], ["Grilování", "100g  - Striploin s tukovým krytím - z nízkého roštěnce", 50, 159, 7950], ["Grilování", "100g - Kuřecí steak z prsní části", 100, 95, 9500], ["Grilování", "100g - Vepřová panenka steak", 100, 125, 12500], ["Grilování", "100g - Vepřová kotleta připravená z libové části", 50, 115, 5750], ["Grilování", "100g - Tuňák žlutoploutvý steak", 20, 175, 3500], ["Grilování", "100g - Krevetový špíz se zeleninou", 50, 140, 7000], ["Grilování", "2,5kg - Středomořská mísa - humr, chobotnice, krevety, svatojakubské mušle, kořenová zelenina, citrusy", 2, 4420, 8840], ["Grilování", "70g - Hovězí mini burger , salát, rajče, okurek, cibule, dresink, sýr", 100, 110, 11000], ["Grilování", "3kg - Grilovaná zelenina (cuketa, lilek, rajče, paprika, cibule, mrkev)", 5, 1080, 5400], ["Grilování", "3kg - pečené brambory na rozmarýnu", 5, 600, 3000], ["Grilování", "2kg - Salát coleslaw", 4, 659, 2636], ["Grilování", "2kg - Šopský salát", 4, 665, 2660], ["Grilování", "2kg - Řecký salát tzatziky", 4, 659, 2636], ["Grilování", "4 druhy dresingu + omáčka demi glace", 2, 850, 1700], ["Grilování", "celkem", null, null, 120522], ["Teplý raut", null, null, null, null], ["Teplý raut", "50g - Kuřecí koktejlové řízečky", 80, 58, 4640], ["Teplý raut", "50g - Vepřové koktejlové řízečky", 80, 58, 4640], ["Teplý raut", "50g - Telecí koktejlové řízečky", 50, 73, 3650], ["Teplý raut", "300g - Pečená vepřová žebra BBQ", 20, 287, 5740], ["Teplý raut", "50g - Hovězí líčka na víně a kořenové zelenině", 50, 83, 4150], ["Teplý raut", "10kg - Pečená kýta s okurky, hořčicí a křenem", 1, 4580, 4580], ["Teplý raut", "2,5kg - Mísa bramborového salátu s majonézou", 4, 653, 2612], ["Teplý raut", "3kg - Zeleninový bulgur", 2, 650, 1300], ["Teplý raut", "3kg - Bramboráčky", 2, 600, 1200], ["Teplý raut", "3kg - Šťouchané brambory s cibulkou a slaninou", 2, 600, 1200], ["Teplý raut", "3kg - Jasmínová rýže", 2, 600, 1200], ["Teplý raut celkem", null, null, null, null], ["Sladký bar", null, null, null, null], ["Sladký bar", "domácí tvarohové koláčky", 100, 12, 1200], ["Sladký bar", "pana cotta - jahoda, malina", 30, 69, 2070], ["Sladký bar", "cupcake 4 různé druhy  - na horním krému bude logo vaší firmy", 100, 80, 8000], ["Sladký bar", "Profiteroles (francouzský dezert)", 100, 10, 1000], ["Sladký bar", "nugátové minikoblížky", 80, 18, 1440], ["Sladký bar", "Francouzské mini makronky (4 příchutě)", 50, 33, 1650], ["Sladký bar", "kopeček zmrzliny v kornoutu - více příchutí", 200, 30, 6000], ["Sladký bar", "Mini tiramisu", 80, 69, 5520], ["Sladký bar", "Šlehané mascarpone s lesním ovocem", 80, 69, 5520], ["Sladký bar", "celkem", null, null, 21130], ["Další rozpočet rautu", null, null, null, null], ["Další rozpočet rautu", "doprava jedna cesta", 1, null, null], ["Další rozpočet rautu", "založení rautu před akcí 2x", 1, "200 kč/ 1 hod.", null], ["Další rozpočet rautu", "hlavní obsluha", 1, "250 kč/ 1hod.", null], ["Další rozpočet rautu", "obsluha  4x", 1, "200 kč/ 1 hod.", null], ["Další rozpočet rautu", "kuchař 2x", 1, "250 kč/ 1hod.", null], ["Další rozpočet rautu", "zapůjčení inventáře - dle dohody", 1, null, null], ["Další rozpočet rautu", "ubrus", 1, 88, null], ["Další rozpočet rautu", "rautová sukně", 1, 330, null], ["Další rozpočet rautu", "výčep - dvoupákový", 1, 660, null], ["Další rozpočet rautu", "gastro kávovar - zvládá espresso, cappuccino, latté", 1, 660, null], ["Další rozpočet rautu", "barové stolky včetně strečového ubrusu", 1, 350, null], ["Další rozpočet rautu", "rautový stůl 60x220", 1, 135, null], ["Další rozpočet rautu", "bedna ledu 25 kg", 1, 650, null], ["Další rozpočet rautu", "párty stan 3x3m - bílá barva", 1, 1500, null], ["Další rozpočet rautu", "sklizení rautu po akci 2x", 1, "200 kč/ 1 hod.", null], ["Další rozpočet rautu", "pronájem grilu - (vyčištění, propan butan)", 1, 2500, null], ["Další rozpočet rautu", "celkem", null, null, null], ["Nabídka č. 3 Celkem", null, null, null, null], ["Nabídka platná do konce roku 2026", null, null, null, null], ["Celkem dle nabídky", null, null, null, 238868], ["Cena / osoba", null, null, null, null]]};
+
+const state = {
+  currentSheet: "Srovnání",
+  sortIndex: null,
+  sortDir: 1
+};
+
+function fmt(value) {
+  if (value === null || value === undefined || value === "") return "";
+  if (typeof value === "number") {
+    return new Intl.NumberFormat("cs-CZ").format(value);
+  }
+  return String(value);
+}
+
+function fmtMoney(value) {
+  if (value === null || value === undefined || value === "") return "–";
+  return new Intl.NumberFormat("cs-CZ", { style:"currency", currency:"CZK", maximumFractionDigits:0 }).format(value);
+}
+
+function buildKPIs() {
+  const rows = workbook["Srovnání"] || [];
+  const dataRows = rows.slice(4).filter(r => r && r[0]);
+  const validCompanies = dataRows.length;
+  let cheapest = null;
+  let cheapestName = "";
+  let avg = 0, count = 0;
+
+  dataRows.forEach(r => {
+    const total = typeof r[3] === "number" ? r[3] : (typeof r[4] === "number" ? r[4] : null);
+    const pricePerPerson = typeof r[5] === "number" ? r[5] : (typeof r[6] === "number" ? r[6] : (total && r[2] ? total / r[2] : null));
+    if (typeof pricePerPerson === "number") {
+      avg += pricePerPerson;
+      count++;
+      if (cheapest === null || pricePerPerson < cheapest) {
+        cheapest = pricePerPerson;
+        cheapestName = r[1] || r[0];
+      }
+    }
+  });
+
+  const totalRows = Object.values(workbook).reduce((acc, rows) => acc + rows.length, 0);
+  const kpis = [
+    {label:"Počet nabídek", value: validCompanies, small:"ve srovnávacím listu"},
+    {label:"Nejnižší cena / os", value: cheapest ? fmtMoney(cheapest) : "–", small: cheapestName || ""},
+    {label:"Průměrná cena / os", value: count ? fmtMoney(avg / count) : "–", small:"dle dostupných cen/os"},
+    {label:"Řádků dat", value: new Intl.NumberFormat("cs-CZ").format(totalRows), small:"napříč všemi záložkami"}
+  ];
+
+  const box = document.getElementById("kpis");
+  box.innerHTML = kpis.map(k => `
+    <div class="card">
+      <h3>${k.label}</h3>
+      <div class="big">${k.value}</div>
+      <div class="small">${k.small}</div>
+    </div>
+  `).join("");
+}
+
+function buildBars() {
+  const rows = (workbook["Srovnání"] || []).slice(4).filter(r => r && r[0]);
+  const prepared = rows.map(r => {
+    const total = typeof r[3] === "number" ? r[3] : (typeof r[4] === "number" ? r[4] : null);
+    const per = typeof r[5] === "number" ? r[5] : (typeof r[6] === "number" ? r[6] : (total && r[2] ? total / r[2] : null));
+    return { name: r[0], company: r[1], total, per };
+  }).filter(x => typeof x.per === "number").sort((a,b) => a.per - b.per);
+
+  const max = Math.max(...prepared.map(x => x.per));
+  document.getElementById("bars").innerHTML = prepared.map(x => `
+    <div class="bar-row">
+      <div><strong>${x.name}</strong><div class="small">${x.company}</div></div>
+      <div class="bar"><div class="fill" style="width:${(x.per / max) * 100}%"></div></div>
+      <div class="right"><span class="badge">${fmtMoney(x.per)} / os</span></div>
+    </div>
+  `).join("");
+}
+
+function buildTabs() {
+  const tabs = document.getElementById("tabs");
+  const select = document.getElementById("sheetSelect");
+  const names = Object.keys(workbook);
+  tabs.innerHTML = names.map(name => `<button class="tab ${name === state.currentSheet ? 'active' : ''}" data-sheet="${name}">${name}</button>`).join("");
+  select.innerHTML = names.map(name => `<option value="${name}" ${name === state.currentSheet ? 'selected' : ''}>${name}</option>`).join("");
+
+  tabs.querySelectorAll(".tab").forEach(btn => {
+    btn.addEventListener("click", () => {
+      state.currentSheet = btn.dataset.sheet;
+      state.sortIndex = null;
+      buildTabs();
+      renderTable();
+    });
+  });
+
+  select.onchange = e => {
+    state.currentSheet = e.target.value;
+    state.sortIndex = null;
+    buildTabs();
+    renderTable();
+  };
+}
+
+function normalizeRows(rows) {
+  const maxCols = Math.max(...rows.map(r => r.length));
+  return rows.map(r => {
+    const copy = [...r];
+    while (copy.length < maxCols) copy.push("");
+    return copy;
+  });
+}
+
+function renderTable() {
+  const rows = normalizeRows(workbook[state.currentSheet] || []);
+  const search = document.getElementById("search").value.trim().toLowerCase();
+  const viewMode = document.getElementById("viewMode").value;
+
+  let headerIndex = rows.findIndex(r => r.some(v => String(v).toLowerCase().includes("položka")) || r.some(v => String(v).toLowerCase().includes("nabídka")));
+  if (headerIndex < 0) headerIndex = 0;
+
+  const headers = rows[headerIndex].map((h, i) => h || `Sloupec ${i+1}`);
+  let body = rows.slice(headerIndex + 1);
+
+  body = body.filter(r => {
+    const txt = r.map(v => String(v ?? "")).join(" ").toLowerCase();
+    const matchesSearch = !search || txt.includes(search);
+    const hasPrice = viewMode === "all" || r.some(v => typeof v === "number");
+    return matchesSearch && hasPrice;
+  });
+
+  if (state.sortIndex !== null) {
+    body.sort((a,b) => {
+      const av = a[state.sortIndex], bv = b[state.sortIndex];
+      if (typeof av === "number" && typeof bv === "number") return (av - bv) * state.sortDir;
+      return String(av ?? "").localeCompare(String(bv ?? ""), "cs") * state.sortDir;
+    });
+  }
+
+  const thead = document.querySelector("#sheetTable thead");
+  const tbody = document.querySelector("#sheetTable tbody");
+
+  thead.innerHTML = "<tr>" + headers.map((h, i) => `<th data-index="${i}">${h}${state.sortIndex === i ? (state.sortDir === 1 ? " ▲" : " ▼") : ""}</th>`).join("") + "</tr>";
+  tbody.innerHTML = body.map(r => "<tr>" + r.map(v => `<td class="${typeof v === 'number' ? 'right' : ''}">${typeof v === 'number' ? fmt(v) : (v ?? "")}</td>`).join("") + "</tr>").join("");
+
+  thead.querySelectorAll("th").forEach(th => {
+    th.onclick = () => {
+      const idx = Number(th.dataset.index);
+      if (state.sortIndex === idx) state.sortDir *= -1;
+      else {
+        state.sortIndex = idx;
+        state.sortDir = 1;
+      }
+      renderTable();
+    };
+  });
+}
+
+document.getElementById("search").addEventListener("input", renderTable);
+document.getElementById("viewMode").addEventListener("change", renderTable);
+
+buildKPIs();
+buildBars();
+buildTabs();
+renderTable();
+</script>
+</body>
+</html>
