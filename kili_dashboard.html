@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KILI – Interaktivní strategický dashboard</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-2: #1f2937;
+      --card: #ffffff;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #f59e0b;
+      --accent-2: #22c55e;
+      --danger: #ef4444;
+      --warning: #f97316;
+      --shadow: 0 10px 30px rgba(0,0,0,.25);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #0b1220 0%, #111827 100%);
+      color: var(--text);
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: rgba(17, 24, 39, 0.92);
+      border-right: 1px solid rgba(148, 163, 184, 0.15);
+      padding: 24px 18px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      backdrop-filter: blur(12px);
+    }
+
+    .brand {
+      margin-bottom: 24px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+    }
+
+    .brand h1 {
+      margin: 0 0 6px;
+      font-size: 24px;
+      letter-spacing: .02em;
+    }
+
+    .brand p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .nav-group {
+      margin: 18px 0;
+    }
+
+    .nav-label {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin: 0 0 10px;
+    }
+
+    .nav-btn {
+      display: block;
+      text-decoration: none;
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      color: var(--text);
+      border: 1px solid transparent;
+      border-radius: 14px;
+      padding: 12px 14px;
+      cursor: pointer;
+      margin-bottom: 8px;
+      transition: .2s ease;
+      font-size: 14px;
+    }
+
+    .nav-btn:hover,
+    .nav-btn.active {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: rgba(245, 158, 11, 0.25);
+      color: #fff;
+    }
+
+    .content {
+      padding: 28px;
+    }
+
+    .topbar {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .headline h2 {
+      margin: 0 0 8px;
+      font-size: 32px;
+    }
+
+    .headline p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 900px;
+      line-height: 1.6;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .control-btn {
+      background: #fff;
+      color: #111827;
+      border: 0;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+    }
+
+    .control-btn.secondary {
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      box-shadow: none;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 18px;
+    }
+
+    .card {
+      transition: .2s ease;
+    }
+
+    .clickable-card {
+      cursor: pointer;
+    }
+
+    .clickable-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(245, 158, 11, 0.35);
+    }
+
+    .card {
+      background: rgba(17, 24, 39, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .span-12 { grid-column: span 12; }
+    .span-8 { grid-column: span 8; }
+    .span-6 { grid-column: span 6; }
+    .span-4 { grid-column: span 4; }
+    .span-3 { grid-column: span 3; }
+
+    .metric {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 145px;
+      justify-content: space-between;
+    }
+
+    .metric .label {
+      color: var(--muted);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .metric .value {
+      font-size: 38px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .metric .note {
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      width: fit-content;
+    }
+
+    .status.critical { background: rgba(239, 68, 68, .14); color: #fecaca; }
+    .status.warning { background: rgba(249, 115, 22, .14); color: #fdba74; }
+    .status.good { background: rgba(34, 197, 94, .14); color: #bbf7d0; }
+
+    .section-title {
+      margin: 0 0 16px;
+      font-size: 20px;
+      color: #fff;
+    }
+
+    .section-sub {
+      margin: -4px 0 18px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .phase {
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 16px;
+      padding: 18px;
+    }
+
+    .phase h4 {
+      margin: 0 0 12px;
+      font-size: 18px;
+    }
+
+    .phase ul,
+    .detail-list,
+    .bullet-list {
+      margin: 0;
+      padding-left: 18px;
+      line-height: 1.7;
+      color: var(--text);
+    }
+
+    .bullet-list li,
+    .detail-list li,
+    .phase li { margin-bottom: 8px; }
+
+    .accordion {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .acc-item {
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 16px;
+      overflow: hidden;
+      background: rgba(255,255,255,.03);
+    }
+
+    .acc-head {
+      width: 100%;
+      background: transparent;
+      border: 0;
+      color: #fff;
+      text-align: left;
+      padding: 18px 20px;
+      font-size: 17px;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .acc-body {
+      display: none;
+      padding: 0 20px 20px;
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    .acc-item.open .acc-body { display: block; }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .pill {
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      background: rgba(245, 158, 11, 0.12);
+      color: #fde68a;
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    .matrix {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .matrix-box {
+      border-radius: 16px;
+      padding: 18px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+    }
+
+    .matrix-box h4 {
+      margin: 0 0 12px;
+      font-size: 17px;
+    }
+
+    .risk {
+      border-left: 4px solid var(--danger);
+      padding-left: 14px;
+      margin-bottom: 14px;
+    }
+
+    .risk strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #fff;
+    }
+
+    .project-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .project-card {
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 16px;
+      padding: 18px;
+    }
+
+    .project-card h4 {
+      margin: 0 0 10px;
+      font-size: 18px;
+      color: #fff;
+    }
+
+    .project-card p {
+      margin: 0 0 12px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .project-card .mini {
+      color: #cbd5e1;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .hidden { display: none; }
+
+    .is-dimmed {
+      opacity: 0.22 !important;
+      filter: grayscale(0.2);
+    }
+
+    .is-highlighted {
+      outline: 2px solid rgba(245, 158, 11, .45) !important;
+      opacity: 1 !important;
+    }
+
+    .focus-info {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      color: #fde68a;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 1100px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { position: relative; height: auto; }
+      .span-8, .span-6, .span-4, .span-3 { grid-column: span 12; }
+      .timeline, .matrix, .project-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <h1>KILI Dashboard</h1>
+        <p>Interaktivní executive dashboard nad strategií transformace firmy.</p>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">Sekce</div>
+        <a href="#overview" class="nav-btn active" data-view="overview">Přehled</a>
+        <a href="#strategy" class="nav-btn" data-view="strategy">Strategie</a>
+        <a href="#swot" class="nav-btn" data-view="swot">SWOT</a>
+        <a href="#roadmap" class="nav-btn" data-view="roadmap">90denní plán</a>
+        <a href="#projects" class="nav-btn" data-view="projects">Projektové bloky</a>
+        <a href="#risks" class="nav-btn" data-view="risks">Rizika a rozhodnutí</a>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">Quick filter</div>
+        <button type="button" class="nav-btn" data-focus="people">Lidé / HR</button>
+        <button type="button" class="nav-btn" data-focus="management">Management</button>
+        <button type="button" class="nav-btn" data-focus="business">Obchod</button>
+        <button type="button" class="nav-btn" data-focus="tech">Technologie</button>
+        <button type="button" class="nav-btn" data-focus="marketing">Marketing</button>
+      </div>
+    </aside>
+
+    <main class="content">
+      <div class="topbar">
+        <div class="headline">
+          <h2 id="viewTitle">Executive přehled</h2>
+          <p id="viewIntro">Dashboard shrnuje problém, navrženou strategii, transformační projekt, rizika a první 90denní exekuční plán.</p>
+          <div id="focusInfo" class="focus-info hidden">Filtr je aktivní.</div>
+        </div>
+        <div class="controls">
+          <button type="button" class="control-btn" id="expandAll">Rozbalit vše</button>
+          <button type="button" class="control-btn secondary" id="collapseAll">Sbalit vše</button>
+        </div>
+      </div>
+
+      <section id="overview" class="view">
+        <div class="grid">
+          <div class="card span-3 metric focus-people clickable-card" data-view-target="projects">
+            <div>
+              <div class="label">Priorita #1</div>
+              <div class="value">Lidé</div>
+            </div>
+            <div class="status critical">Kritický stav</div>
+            <div class="note">Firma je limitována kvalitou týmu, fluktuací, absencí funkčního HR a nekompetentním řízením lidí.</div>
+          </div>
+
+          <div class="card span-3 metric focus-management clickable-card" data-view-target="projects">
+            <div>
+              <div class="label">Root cause</div>
+              <div class="value">Řízení</div>
+            </div>
+            <div class="status critical">Nutná změna</div>
+            <div class="note">Největší bariérou není produkt ani trh, ale způsob řízení, mikromanagement a absence strategie.</div>
+          </div>
+
+          <div class="card span-3 metric focus-business clickable-card" data-view-target="roadmap">
+            <div>
+              <div class="label">Obchod</div>
+              <div class="value">Oslaben</div>
+            </div>
+            <div class="status warning">Pod tlakem</div>
+            <div class="note">Dobří obchodníci odešli, zůstali převážně průměrní a podprůměrní, výkon je nestabilní a závislý na jednotlivcích.</div>
+          </div>
+
+          <div class="card span-3 metric focus-tech clickable-card" data-view-target="roadmap">
+            <div>
+              <div class="label">Technologie</div>
+              <div class="value">Dluh</div>
+            </div>
+            <div class="status warning">Zaostávání</div>
+            <div class="note">Zastaralý web, chybějící nářezový program a minimální technické inovace snižují efektivitu i konkurenceschopnost.</div>
+          </div>
+
+          <div class="card span-8">
+            <h3 class="section-title">Executive shrnutí</h3>
+            <p class="section-sub">KILI má stále silné tržní základy: více než 30 let na trhu, českého vlastníka, český kapitál, vlastní zázemí a dobře zmapovaný trh. Potenciál firmy ale dnes blokují interní faktory: nefunkční management, absence strategie, oslabený obchodní tým, neexistující HR funkce a zanedbaná technologie.</p>
+            <div class="pill-row">
+              <div class="pill">30+ let na trhu</div>
+              <div class="pill">Český vlastník</div>
+              <div class="pill">Vlastní zázemí</div>
+              <div class="pill">Široká znalost trhu</div>
+              <div class="pill">Nutný restart řízení</div>
+            </div>
+          </div>
+
+          <div class="card span-4">
+            <h3 class="section-title">Klíčová volba</h3>
+            <p class="section-sub">Firma stojí před rozhodnutím, zda pokračovat v režimu operativního přežívání, nebo přejít na řízenou transformaci.</p>
+            <div class="risk"><strong>Varianta 1: pokračování beze změny</strong><span>Další odchod schopných lidí, pokračující průměrnost výkonu, technologické zaostávání a ztráta budoucích zákazníků.</span></div>
+            <div class="risk"><strong>Varianta 2: řízená transformace</strong><span>Stabilizace týmu, obnova výkonu, zrychlení obchodu a vytvoření základu pro moderní růst firmy.</span></div>
+          </div>
+
+          <div class="card span-12">
+            <h3 class="section-title">Tři fáze transformace</h3>
+            <div class="timeline">
+              <div class="phase">
+                <h4>0–30 dní</h4>
+                <ul>
+                  <li>Stabilizace lidí a řízení</li>
+                  <li>Audit zaměstnanců a zásah do nefunkčních rolí</li>
+                  <li>Zavedení F2F porad a jasných priorit</li>
+                </ul>
+              </div>
+              <div class="phase">
+                <h4>30–60 dní</h4>
+                <ul>
+                  <li>Nastavení KPI a odpovědností</li>
+                  <li>Standardizace obchodu</li>
+                  <li>První zásahy do webu a nástrojů</li>
+                </ul>
+              </div>
+              <div class="phase">
+                <h4>60–90 dní</h4>
+                <ul>
+                  <li>Aktivace zákaznické báze</li>
+                  <li>Spuštění prvních výkonových kampaní</li>
+                  <li>Start technologických projektů</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="strategy" class="view hidden">
+        <div class="grid">
+          <div class="card span-6">
+            <h3 class="section-title">Mise</h3>
+            <p class="section-sub">Pomáháme profesionálům ve dřevovýrobě a stavebnictví pracovat rychleji, jistěji a bez chyb díky dostupnému materiálu a odborné podpoře.</p>
+          </div>
+          <div class="card span-6">
+            <h3 class="section-title">Vize</h3>
+            <p class="section-sub">KILI se stane technologicky řízenou obchodní platformou, která propojuje dostupnost materiálu, rychlost dodání a digitální nástroje pro efektivní práci zákazníků.</p>
+          </div>
+          <div class="card span-12">
+            <h3 class="section-title">Strategické cíle na 3 roky</h3>
+            <ul class="bullet-list">
+              <li>Zvýšit produktivitu obchodu bez navyšování počtu lidí.</li>
+              <li>Zvýšit hodnotu stávajícího zákazníka a frekvenci nákupu.</li>
+              <li>Získat mladší a digitálně orientovaný segment zákazníků.</li>
+              <li>Snížit závislost firmy na jednotlivcích a převést know-how do systému.</li>
+            </ul>
+          </div>
+          <div class="card span-12">
+            <h3 class="section-title">Hlavní princip strategie</h3>
+            <p class="section-sub">Stabilizovat lidi, zavést řízení, opravit obchod, doplnit technologie a až poté škálovat výkon. Strategie nestojí na marketingovém sloganu, ale na změně rozhodovacího a výkonnostního systému firmy.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="swot" class="view hidden">
+        <div class="grid">
+          <div class="card span-12">
+            <h3 class="section-title">SWOT matrix</h3>
+            <div class="matrix">
+              <div class="matrix-box">
+                <h4>Strengths</h4>
+                <ul class="detail-list">
+                  <li>Více než 30 let na trhu.</li>
+                  <li>Český vlastník a český kapitál.</li>
+                  <li>Vlastní zázemí, logistika a fyzická dostupnost materiálu.</li>
+                  <li>Široké zmapování trhu a produktové know-how.</li>
+                  <li>Existuje menší skupina lidí, která je ochotná firmu skutečně táhnout.</li>
+                </ul>
+              </div>
+              <div class="matrix-box">
+                <h4>Weaknesses</h4>
+                <ul class="detail-list">
+                  <li>Oslabený a nestabilní obchodní tým.</li>
+                  <li>Nízké mzdy a neudržitelné pracovní podmínky.</li>
+                  <li>Absence strategie, sdíleného směru a firemního konceptu.</li>
+                  <li>Nefunkční management, mikromanagement a řízení na základě strachu.</li>
+                  <li>HR funkce fakticky neexistuje a místo podpory rozkládá důvěru.</li>
+                </ul>
+              </div>
+              <div class="matrix-box">
+                <h4>Opportunities</h4>
+                <ul class="detail-list">
+                  <li>Digitalizace a automatizace klíčových procesů.</li>
+                  <li>Modernizace zákaznické cesty a aktivace databáze.</li>
+                  <li>Budování odborné značky a edukativního obsahu.</li>
+                  <li>Rozšíření směrem k mladšímu zákaznickému segmentu.</li>
+                </ul>
+              </div>
+              <div class="matrix-box">
+                <h4>Threats</h4>
+                <ul class="detail-list">
+                  <li>Zastaralý a slabě funkční web.</li>
+                  <li>Chybějící nářezový software v nářezovém centru.</li>
+                  <li>Stárnoucí zákaznická báze, mladí truhláři nepřicházejí.</li>
+                  <li>Pokračující odchod kvalitních lidí a další ztráta výkonu.</li>
+                  <li>Konkurence s lepším servisem, rychlostí a technologiemi.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="roadmap" class="view hidden">
+        <div class="grid">
+          <div class="card span-12">
+            <h3 class="section-title">90denní detailní plán</h3>
+            <div class="accordion">
+              <div class="acc-item open focus-people focus-management">
+                <button type="button" class="acc-head">Fáze 1 – Stabilizace (0–30 dní) <span>+</span></button>
+                <div class="acc-body">
+                  <ul class="detail-list">
+                    <li>Provést audit všech zaměstnanců a rozdělit je na A/B/C hráče podle výkonu, postoje a vlivu na tým.</li>
+                    <li>Odebrat vliv nekompetentní HR roli a převést řízení lidí přímo pod vedení nebo externí interim řízení.</li>
+                    <li>Vést retenční rozhovory s klíčovými lidmi a identifikovat, co je potřeba udělat pro jejich udržení.</li>
+                    <li>Okamžitě zastavit toxické chování, drby a neformální mocenské hry.</li>
+                    <li>Zavést pravidelné face-to-face porady managementu, obchodu a provozu s jasnou strukturou: čísla, problémy, rozhodnutí, úkoly.</li>
+                    <li>Definovat tři krátkodobé priority: stabilita lidí, výkon obchodu a pořádek v řízení.</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="acc-item focus-business focus-management">
+                <button type="button" class="acc-head">Fáze 2 – Nastavení systému (30–60 dní) <span>+</span></button>
+                <div class="acc-body">
+                  <ul class="detail-list">
+                    <li>Zavést základní KPI pro obchod, marketing a operativu.</li>
+                    <li>Standardizovat obchodní proces, definovat pipeline a jasně popsat, co se od obchodníka očekává každý den.</li>
+                    <li>Nastavit pravidla výkonu, odpovědnosti a způsob odměňování.</li>
+                    <li>Komunikovat zaměstnancům směr firmy, misi, vizi a očekávané změny.</li>
+                    <li>Udělать rychlé zásahy do webu, aby byl funkční, srozumitelný a lépe podporoval prodej.</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="acc-item focus-tech focus-marketing focus-business">
+                <button type="button" class="acc-head">Fáze 3 – Výkon a růst (60–90 dní) <span>+</span></button>
+                <div class="acc-body">
+                  <ul class="detail-list">
+                    <li>Aktivovat zákaznickou databázi přes systematickou komunikaci a nabídky.</li>
+                    <li>Spustit první výkonové kampaně zaměřené na dostupnost, jednoduchost a odbornou výhodu KILI.</li>
+                    <li>Zahájit výběr a implementaci technologických nástrojů, zejména pro nářezové centrum a interní procesy.</li>
+                    <li>Začít tvořit obsah a odbornou komunikaci, která posílí značku a přivede mladší cílovou skupinu.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="projects" class="view hidden">
+        <div class="grid">
+          <div class="card span-12">
+            <h3 class="section-title">Strategický projekt – transformační bloky</h3>
+            <div class="project-grid">
+              <div class="project-card focus-people">
+                <h4>1. Řízení lidí / HR</h4>
+                <p>Nejde o administrativu, ale o převzetí kontroly nad výkonem, kulturou a důvěrou.</p>
+                <div class="mini">Nutné kroky: odebrat vliv nefunkční roli, zavést pravidla, nastavit výkon a rozhodnout, kdo firmu táhne a kdo ji brzdí.</div>
+              </div>
+              <div class="project-card focus-management">
+                <h4>2. Stabilizace managementu</h4>
+                <p>Management musí přestat chránit vlastní pozice a začít řídit výkon firmy.</p>
+                <div class="mini">Nutné kroky: konec mikromanagementu, zavedení odpovědnosti, pravidelné porady a rozhodování podle dat.</div>
+              </div>
+              <div class="project-card focus-business">
+                <h4>3. Restart obchodu</h4>
+                <p>Obchod potřebuje nový řád, jasné standardy a nástroje, ne další improvizaci.</p>
+                <div class="mini">Nutné kroky: standardizace procesu, práce s databází, aktivace zákazníků a zvýšení výkonu na obchodníka.</div>
+              </div>
+              <div class="project-card focus-tech">
+                <h4>4. Technologie a provoz</h4>
+                <p>Technologie mají odstranit zbytečnou manuální práci a zrychlit interní výkon.</p>
+                <div class="mini">Nutné kroky: modernizace webu, nářezový software, základní digitalizace a datová infrastruktura.</div>
+              </div>
+              <div class="project-card focus-marketing">
+                <h4>5. Marketing a značka</h4>
+                <p>Marketing má podporovat výkon obchodu, ne fungovat jako izolovaná aktivita.</p>
+                <div class="mini">Nutné kroky: jasná komunikace výhod, obsah, případové studie a práce s novým zákaznickým segmentem.</div>
+              </div>
+              <div class="project-card">
+                <h4>6. Řízení celé transformace</h4>
+                <p>Každý blok musí mít ownera, KPI, termín a pravidelný reporting.</p>
+                <div class="mini">Nutné kroky: týdenní reporting, měsíční review a kvartální rozhodovací body pro vedení.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="risks" class="view hidden">
+        <div class="grid">
+          <div class="card span-6">
+            <h3 class="section-title">Největší rizika</h3>
+            <div class="risk"><strong>Žádná skutečná personální změna</strong><span>Pokud zůstanou stejní lidé ve stejných rolích bez odpovědnosti, výkon se nezmění.</span></div>
+            <div class="risk"><strong>Management nezmění styl</strong><span>Firma se vrátí do chaosu, pokud zůstane mikromanagement a rozhodování ze strachu.</span></div>
+            <div class="risk"><strong>Nedisciplinovaná exekuce</strong><span>Bez ownerů, termínů a pravidelného reportingu se strategie rozpadne na neřízené iniciativy.</span></div>
+          </div>
+          <div class="card span-6">
+            <h3 class="section-title">Doporučené rozhodnutí vedení</h3>
+            <ul class="detail-list">
+              <li>Oficiálně potvrdit transformační projekt jako prioritu firmy.</li>
+              <li>Jmenovat vlastníka transformace s reálnou autoritou.</li>
+              <li>Schválit první 90denní exekuční plán a způsob reportingu.</li>
+              <li>Vyřešit řízení lidí jako samostatný kritický problém, ne jako administrativní detail.</li>
+              <li>Zastavit rozptylování firmy vedlejšími aktivitami bez přímého dopadu na výkon.</li>
+            </ul>
+          </div>
+          <div class="card span-12">
+            <h3 class="section-title">Závěrečné sdělení</h3>
+            <p class="section-sub">KILI není slabé produktem ani historií. Slabé je dnes uvnitř. Pokud se podaří stabilizovat lidi, zavést řízení a opravit obchodní a technologický základ, firma má reálný prostor pro restart a další růst. Pokud se nic nezmění, bude se jen prohlubovat vnitřní únava, průměrnost a ztráta konkurenceschopnosti.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const views = {
+        overview: {
+          title: 'Executive přehled',
+          intro: 'Dashboard shrnuje problém, navrženou strategii, transformační projekt, rizika a první 90denní exekuční plán.'
+        },
+        strategy: {
+          title: 'Strategie firmy',
+          intro: 'Mise, vize, cíle a hlavní princip transformace podle strategického rámce.'
+        },
+        swot: {
+          title: 'SWOT analýza',
+          intro: 'Přehled silných stránek, slabin, příležitostí a hrozeb, které musí vedení vzít v úvahu.'
+        },
+        roadmap: {
+          title: '90denní plán',
+          intro: 'Detail prvních kroků, které mají zastavit pád, zavést systém a vrátit firmě výkon.'
+        },
+        projects: {
+          title: 'Projektové bloky',
+          intro: 'Rozpad transformačního projektu do klíčových exekučních oblastí.'
+        },
+        risks: {
+          title: 'Rizika a rozhodnutí',
+          intro: 'Největší hrozby transformace a konkrétní rozhodnutí, která musí vedení učinit.'
+        }
+      };
+
+      const focusLabels = {
+        people: 'Lidé / HR',
+        management: 'Management',
+        business: 'Obchod',
+        tech: 'Technologie',
+        marketing: 'Marketing'
+      };
+
+      const focusPreferredView = {
+        people: 'projects',
+        management: 'projects',
+        business: 'roadmap',
+        tech: 'roadmap',
+        marketing: 'projects'
+      };
+
+      const viewButtons = document.querySelectorAll('[data-view]');
+      const sections = document.querySelectorAll('.view');
+      const title = document.getElementById('viewTitle');
+      const intro = document.getElementById('viewIntro');
+      const focusInfo = document.getElementById('focusInfo');
+      const focusButtons = document.querySelectorAll('[data-focus]');
+      const accordionButtons = document.querySelectorAll('.acc-head');
+      const expandAllBtn = document.getElementById('expandAll');
+      const collapseAllBtn = document.getElementById('collapseAll');
+      const clickableCards = document.querySelectorAll('[data-view-target]');
+      let currentFocus = null;
+
+      function showView(target) {
+        if (!target || !document.getElementById(target)) return;
+
+        viewButtons.forEach(b => b.classList.remove('active'));
+        const activeBtn = document.querySelector(`[data-view="${target}"]`);
+        if (activeBtn) activeBtn.classList.add('active');
+
+        sections.forEach(section => section.classList.add('hidden'));
+        const targetSection = document.getElementById(target);
+        if (targetSection) targetSection.classList.remove('hidden');
+
+        if (views[target]) {
+          title.textContent = views[target].title;
+          intro.textContent = views[target].intro;
+        }
+        applyFocus();
+      }
+
+      function clearFocusState(visible) {
+        visible.querySelectorAll('.card, .acc-item, .project-card, .matrix-box, .phase').forEach(el => {
+          el.classList.remove('is-dimmed', 'is-highlighted');
+        });
+      }
+
+      function applyFocus() {
+        const visible = document.querySelector('.view:not(.hidden)');
+        if (!visible) return;
+        clearFocusState(visible);
+
+        if (!currentFocus) {
+          focusInfo.classList.add('hidden');
+          focusInfo.textContent = 'Filtr je aktivní.';
+          return;
+        }
+
+        const candidates = visible.querySelectorAll('.card, .acc-item, .project-card, .matrix-box, .phase');
+        let matched = 0;
+
+        candidates.forEach(el => {
+          const match = el.classList.contains(`focus-${currentFocus}`);
+          if (match) {
+            el.classList.add('is-highlighted');
+            matched += 1;
+          } else {
+            el.classList.add('is-dimmed');
+          }
+        });
+
+        focusInfo.classList.remove('hidden');
+        if (matched > 0) {
+          focusInfo.textContent = `Aktivní filtr: ${focusLabels[currentFocus]}. Zvýrazněny jsou relevantní bloky v této sekci.`;
+        } else {
+          focusInfo.textContent = `Aktivní filtr: ${focusLabels[currentFocus]}. V této sekci nejsou označené bloky, přepínám filtr hlavně pro související sekce.`;
+        }
+      }
+
+      function handleHashChange() {
+        const hash = window.location.hash.replace('#', '');
+        showView(hash || 'overview');
+      }
+
+      viewButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const target = btn.dataset.view;
+          history.replaceState(null, '', `#${target}`);
+          showView(target);
+        });
+      });
+
+      clickableCards.forEach(card => {
+        card.addEventListener('click', () => {
+          const target = card.dataset.viewTarget;
+          history.replaceState(null, '', `#${target}`);
+          showView(target);
+        });
+      });
+
+      focusButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const selected = btn.dataset.focus;
+          if (currentFocus === selected) {
+            currentFocus = null;
+            focusButtons.forEach(b => b.classList.remove('active'));
+            applyFocus();
+            return;
+          }
+
+          currentFocus = selected;
+          focusButtons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+
+          const visible = document.querySelector('.view:not(.hidden)');
+          const hasMatchHere = visible && visible.querySelector(`.focus-${currentFocus}`);
+          if (!hasMatchHere && focusPreferredView[currentFocus]) {
+            const target = focusPreferredView[currentFocus];
+            history.replaceState(null, '', `#${target}`);
+            showView(target);
+          } else {
+            applyFocus();
+          }
+        });
+      });
+
+      accordionButtons.forEach(head => {
+        head.addEventListener('click', () => {
+          const item = head.closest('.acc-item');
+          if (!item) return;
+          item.classList.toggle('open');
+          const icon = head.querySelector('span');
+          if (icon) icon.textContent = item.classList.contains('open') ? '−' : '+';
+        });
+      });
+
+      if (expandAllBtn) {
+        expandAllBtn.addEventListener('click', () => {
+          document.querySelectorAll('.acc-item').forEach(item => {
+            item.classList.add('open');
+            const icon = item.querySelector('.acc-head span');
+            if (icon) icon.textContent = '−';
+          });
+        });
+      }
+
+      if (collapseAllBtn) {
+        collapseAllBtn.addEventListener('click', () => {
+          document.querySelectorAll('.acc-item').forEach(item => {
+            item.classList.remove('open');
+            const icon = item.querySelector('.acc-head span');
+            if (icon) icon.textContent = '+';
+          });
+        });
+      }
+
+      window.addEventListener('hashchange', handleHashChange);
+      handleHashChange();
+    });
+  </script>
+</body>
+</html>
