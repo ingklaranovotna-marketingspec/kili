@@ -1,0 +1,2194 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KILI – Transformační Dashboard 2026–2030</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #09090e;
+  --surface: #111118;
+  --card: #14141c;
+  --card2: #181822;
+  --border: #1f1f2e;
+  --border2: #2a2a3e;
+  --accent: #e8c840;
+  --accent2: #ff6b35;
+  --accent3: #4fd1c5;
+  --accent4: #9f7aea;
+  --text: #e8e8f0;
+  --muted: #6b6b85;
+  --muted2: #4a4a62;
+  --phase1: #4fd1c5;
+  --phase2: #e8c840;
+  --phase3: #ff6b35;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Syne', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(232,200,64,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(232,200,64,0.025) 1px, transparent 1px);
+  background-size: 64px 64px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* NAV */
+nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(9,9,14,0.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+}
+
+.nav-brand {
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px;
+  font-style: italic;
+  color: var(--accent);
+  letter-spacing: -0.02em;
+}
+
+.nav-links {
+  display: flex;
+  gap: 4px;
+}
+
+.nav-link {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-family: 'Syne', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.nav-link:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+.nav-link.active { color: var(--accent); background: rgba(232,200,64,0.08); }
+
+/* SECTIONS */
+.section { display: none; }
+.section.active { display: block; }
+
+.wrap {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 40px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── HERO ── */
+.hero {
+  padding: 64px 0 48px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-glow {
+  position: absolute;
+  top: -150px;
+  right: -150px;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(232,200,64,0.07) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.hero-glow2 {
+  position: absolute;
+  bottom: -200px;
+  left: -100px;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(79,209,197,0.05) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(232,200,64,0.08);
+  border: 1px solid rgba(232,200,64,0.25);
+  color: var(--accent);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 5px 14px;
+  border-radius: 3px;
+  margin-bottom: 24px;
+}
+
+.badge-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
+  animation: blink 2s infinite;
+}
+
+@keyframes blink {
+  0%,100%{opacity:1;transform:scale(1)}
+  50%{opacity:0.3;transform:scale(0.6)}
+}
+
+h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(40px, 6vw, 76px);
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+  margin-bottom: 16px;
+}
+
+h1 em { color: var(--accent); font-style: italic; }
+
+.hero-lead {
+  font-size: 17px;
+  color: var(--muted);
+  max-width: 560px;
+  line-height: 1.75;
+  margin-bottom: 40px;
+}
+
+.hero-lead strong { color: var(--text); }
+
+.hero-stats {
+  display: flex;
+  gap: 40px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.hero-stat { display: flex; flex-direction: column; gap: 4px; }
+.hero-stat-val {
+  font-family: 'DM Serif Display', serif;
+  font-size: 32px;
+  color: var(--accent);
+  line-height: 1;
+}
+.hero-stat-lbl {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* LAUNCH BUTTON */
+.launch-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  padding: 18px 36px;
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.launch-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+}
+
+.launch-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(232,200,64,0.35);
+}
+
+.launch-arrow { font-size: 18px; }
+
+/* PROBLEM STRIP */
+.problem-strip {
+  background: rgba(255,107,53,0.05);
+  border: 1px solid rgba(255,107,53,0.2);
+  border-left: 4px solid var(--accent2);
+  border-radius: 8px;
+  padding: 28px 32px;
+  margin: 40px 0;
+}
+
+.problem-strip h3 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 20px;
+  font-style: italic;
+  color: var(--accent2);
+  margin-bottom: 16px;
+}
+
+.problem-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.problem-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.problem-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--accent2);
+  background: rgba(255,107,53,0.1);
+  border: 1px solid rgba(255,107,53,0.2);
+  padding: 3px 7px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.problem-text {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text);
+  opacity: 0.85;
+}
+
+/* SECTION TITLE */
+.sec-title {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin: 56px 0 28px;
+}
+
+.sec-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--muted2);
+  letter-spacing: 0.12em;
+}
+
+.sec-title h2 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 34px;
+  letter-spacing: -0.02em;
+}
+
+.sec-desc {
+  font-size: 15px;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-top: -16px;
+  margin-bottom: 28px;
+  max-width: 680px;
+}
+
+/* PHASE CARDS */
+.phases {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 16px;
+}
+
+@media(max-width:900px){ .phases{ grid-template-columns:1fr; } }
+
+.phase-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.phase-head {
+  padding: 24px 24px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.phase-head-left {}
+
+.phase-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  opacity: 0.7;
+}
+
+.phase-name {
+  font-family: 'DM Serif Display', serif;
+  font-size: 26px;
+  font-style: italic;
+  line-height: 1.1;
+}
+
+.phase-days-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border2);
+  padding: 5px 10px;
+  border-radius: 4px;
+  color: var(--muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.phase-body { padding: 20px 24px 24px; }
+
+.phase-goal {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 18px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.step-list { list-style: none; display: flex; flex-direction: column; gap: 11px; }
+
+.step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  font-size: 14px;
+  line-height: 1.5;
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 4px 6px;
+  margin: 0 -6px;
+  transition: background 0.2s;
+}
+
+.step-item:hover { background: rgba(255,255,255,0.03); }
+
+.step-cb {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  border: 1.5px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+  transition: all 0.2s;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.step-cb.done {
+  background: currentColor !important;
+  color: var(--bg) !important;
+}
+
+.step-text { flex: 1; }
+.step-text.done { opacity: 0.45; text-decoration: line-through; }
+
+/* color schemes */
+.p1 { border-top: 3px solid var(--phase1); }
+.p1 .phase-tag, .p1 .phase-name { color: var(--phase1); }
+.p1 .step-cb { border-color: var(--phase1); color: var(--phase1); }
+
+.p2 { border-top: 3px solid var(--phase2); }
+.p2 .phase-tag, .p2 .phase-name { color: var(--phase2); }
+.p2 .step-cb { border-color: var(--phase2); color: var(--phase2); }
+
+.p3 { border-top: 3px solid var(--phase3); }
+.p3 .phase-tag, .p3 .phase-name { color: var(--phase3); }
+.p3 .step-cb { border-color: var(--phase3); color: var(--phase3); }
+
+/* PROGRESS BAR */
+.progress-widget {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px 28px;
+  margin: 20px 0 48px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.progress-info { flex-shrink: 0; }
+.progress-count {
+  font-family: 'DM Serif Display', serif;
+  font-size: 28px;
+  color: var(--accent);
+  line-height: 1;
+}
+.progress-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+.progress-bar-wrap { flex: 1; min-width: 200px; }
+.progress-track-bg {
+  background: var(--border);
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--phase1), var(--phase2), var(--phase3));
+  border-radius: 4px;
+  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  width: 0%;
+}
+
+.progress-phases {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.progress-phase-lbl {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--muted2);
+}
+
+/* STRATEGY 2026-2030 */
+.timeline {
+  position: relative;
+  padding-left: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--phase1), var(--accent), var(--phase3), var(--accent4));
+}
+
+.year-block {
+  position: relative;
+  padding: 0 0 40px 32px;
+}
+
+.year-dot {
+  position: absolute;
+  left: -24px;
+  top: 6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.year-dot-inner {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.year-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.year-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 24px;
+  font-style: italic;
+  margin-bottom: 12px;
+  line-height: 1.15;
+}
+
+.year-desc {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 14px;
+  max-width: 680px;
+}
+
+.year-targets {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.target-chip {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  padding: 5px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* PILLARS */
+.pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+@media(max-width:900px){ .pillars-grid{ grid-template-columns: repeat(3,1fr); } }
+@media(max-width:600px){ .pillars-grid{ grid-template-columns: repeat(2,1fr); } }
+
+.pillar {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+
+.pillar::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--c, var(--accent));
+  transform: scaleX(0);
+  transition: transform 0.3s;
+}
+
+.pillar:hover::after, .pillar.open::after { transform: scaleX(1); }
+
+.pillar:hover, .pillar.open {
+  border-color: var(--c, var(--accent));
+  background: rgba(255,255,255,0.025);
+  transform: translateY(-2px);
+}
+
+.pillar-ico { font-size: 30px; margin-bottom: 10px; }
+
+.pillar-nm {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--c, var(--accent));
+}
+
+/* PILLAR DETAIL */
+.pillar-detail {
+  display: none;
+  background: var(--card2);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 32px;
+  margin-bottom: 16px;
+}
+
+.pillar-detail.open { display: block; }
+
+.pd-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.pd-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 26px;
+  font-style: italic;
+  margin-bottom: 6px;
+}
+
+.pd-subtitle {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.6;
+  max-width: 500px;
+}
+
+.pd-close {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border2);
+  color: var(--muted);
+  width: 32px; height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.pd-close:hover { color: var(--text); background: rgba(255,255,255,0.1); }
+
+.pd-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+@media(max-width:700px){ .pd-cols{ grid-template-columns:1fr; } }
+
+.pd-col-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.pd-items { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+
+.pd-item {
+  display: flex;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text);
+  opacity: 0.85;
+}
+
+.pd-arrow {
+  color: var(--c, var(--accent));
+  font-family: 'DM Mono', monospace;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* KPI */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 48px;
+}
+
+@media(max-width:900px){ .kpi-grid{ grid-template-columns: repeat(2,1fr); } }
+
+.kpi-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px 20px;
+}
+
+.kpi-ico { font-size: 22px; margin-bottom: 14px; display: block; }
+.kpi-val {
+  font-family: 'DM Serif Display', serif;
+  font-size: 34px;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.kpi-nm {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.kpi-note {
+  font-size: 12px;
+  color: var(--muted2);
+  margin-top: 8px;
+  line-height: 1.5;
+}
+
+/* RISK */
+.risk-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 48px;
+}
+
+@media(max-width:800px){ .risk-cards{ grid-template-columns:1fr; } }
+
+.risk-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px 20px;
+}
+
+.risk-sev {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.risk-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px;
+  font-style: italic;
+  margin-bottom: 10px;
+  line-height: 1.3;
+}
+
+.risk-desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.65;
+  margin-bottom: 14px;
+}
+
+.risk-fix {
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* MISSION/VISION BLOCK */
+.mv-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+@media(max-width:700px){ .mv-grid{ grid-template-columns:1fr; } }
+
+.mv-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 28px;
+}
+
+.mv-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.mv-text {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px;
+  font-style: italic;
+  line-height: 1.35;
+  color: var(--accent);
+}
+
+.mv-explain {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.65;
+  margin-top: 12px;
+}
+
+/* ── TRANSFORMATION GUIDE (modal-like full-screen) ── */
+.guide-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(9,9,14,0.96);
+  backdrop-filter: blur(12px);
+  z-index: 500;
+  overflow-y: auto;
+  display: none;
+}
+
+.guide-overlay.open { display: block; }
+
+.guide-wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 48px 40px 80px;
+}
+
+.guide-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 48px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--border);
+}
+
+.guide-header-left {}
+
+.guide-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(232,200,64,0.08);
+  border: 1px solid rgba(232,200,64,0.25);
+  color: var(--accent);
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 3px;
+  margin-bottom: 16px;
+}
+
+.guide-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 42px;
+  font-style: italic;
+  line-height: 1.05;
+  margin-bottom: 12px;
+}
+
+.guide-intro {
+  font-size: 15px;
+  color: var(--muted);
+  line-height: 1.75;
+  max-width: 560px;
+}
+
+.guide-close {
+  background: var(--card);
+  border: 1px solid var(--border2);
+  color: var(--muted);
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.guide-close:hover { color: var(--text); border-color: var(--muted); }
+
+/* Guide steps */
+.guide-phase-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 48px 0 20px;
+}
+
+.guide-phase-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 3px;
+}
+
+.guide-phase-name {
+  font-family: 'DM Serif Display', serif;
+  font-size: 26px;
+  font-style: italic;
+}
+
+.guide-phase-days {
+  margin-left: auto;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.guide-step {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.guide-step-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px 24px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s;
+}
+
+.guide-step-head:hover { background: rgba(255,255,255,0.02); }
+
+.guide-step-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border2);
+}
+
+.guide-step-title {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+  flex: 1;
+}
+
+.guide-step-subtitle {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 400;
+  margin-top: 3px;
+  line-height: 1.5;
+}
+
+.guide-step-toggle {
+  color: var(--muted);
+  font-size: 18px;
+  flex-shrink: 0;
+  transition: transform 0.25s;
+}
+
+.guide-step.expanded .guide-step-toggle { transform: rotate(180deg); }
+
+.guide-step-body {
+  display: none;
+  padding: 0 24px 24px 68px;
+  border-top: 1px solid var(--border);
+}
+
+.guide-step.expanded .guide-step-body { display: block; }
+
+.guide-step-why {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.7;
+  margin: 16px 0 20px;
+  padding: 14px 18px;
+  background: rgba(255,255,255,0.03);
+  border-left: 3px solid var(--border2);
+  border-radius: 0 6px 6px 0;
+}
+
+.guide-step-why strong { color: var(--text); }
+
+.guide-how-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.guide-actions { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+
+.guide-action {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.guide-action-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--bg);
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-weight: 700;
+  margin-top: 1px;
+}
+
+.guide-output {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 16px 18px;
+}
+
+.guide-output-lbl {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter---spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.guide-output-text {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text);
+  opacity: 0.8;
+}
+
+/* Rating table */
+.rating-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 12px 0;
+}
+
+.rating-table th {
+  text-align: left;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border2);
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.rating-table td {
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  vertical-align: top;
+  line-height: 1.5;
+}
+
+.rating-a { color: var(--phase1); font-weight: 800; }
+.rating-b { color: var(--phase2); font-weight: 800; }
+.rating-c { color: var(--accent2); font-weight: 800; }
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  background: var(--card2);
+  border: 1px solid var(--border2);
+  border-left: 3px solid var(--accent);
+  padding: 14px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  z-index: 999;
+  transform: translateX(220px);
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  max-width: 280px;
+}
+
+.toast.show { transform: translateX(0); opacity: 1; }
+
+/* FOOTER */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 32px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 64px;
+}
+
+.footer-brand { font-family: 'DM Serif Display', serif; font-size: 18px; font-style: italic; color: var(--accent); }
+.footer-note { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.08em; }
+
+/* Anim */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(20px); }
+  to { opacity:1; transform:translateY(0); }
+}
+.fade-in { animation: fadeUp 0.5s ease both; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">KILI Transformace</div>
+  <div class="nav-links">
+    <button class="nav-link active" onclick="showSection('prehled')">Přehled</button>
+    <button class="nav-link" onclick="showSection('plan90')">90denní plán</button>
+    <button class="nav-link" onclick="showSection('strategie')">Strategie 2026–2030</button>
+    <button class="nav-link" onclick="showSection('pilire')">5 pilířů</button>
+    <button class="nav-link" onclick="showSection('rizika')">Rizika</button>
+  </div>
+</nav>
+
+<!-- ════════════════════════════ PŘEHLED ════════════════════════════ -->
+<div id="sec-prehled" class="section active">
+<div class="wrap">
+
+  <div class="hero fade-in">
+    <div class="hero-glow"></div>
+    <div class="hero-glow2"></div>
+    <div class="badge"><div class="badge-dot"></div>Interní dokument · Interim management · 2026</div>
+    <h1>Transformace<br><em>KILI</em></h1>
+    <p class="hero-lead">
+      Tato firma má dobré základy. Má historii, zákazníky, produkt a lidi.<br>
+      <strong>Co jí chybí, je řízení.</strong> A přesně to teď změníme — krok po kroku,
+      průhledně a bez výmluv. Tento dokument je váš průvodce celou cestou.
+    </p>
+    <button class="launch-btn" onclick="openGuide()">
+      <span>Spustit transformaci — průvodce krok za krokem</span>
+      <span class="launch-arrow">→</span>
+    </button>
+  </div>
+
+  <div class="problem-strip fade-in">
+    <h3>Kde se firma nachází dnes — bez příkras</h3>
+    <div class="problem-grid">
+      <div class="problem-item">
+        <span class="problem-num">P1</span>
+        <span class="problem-text">Firma není řízený systém. Je to skupina lidí a operativních úkolů bez společného směru a cíle.</span>
+      </div>
+      <div class="problem-item">
+        <span class="problem-num">P2</span>
+        <span class="problem-text">Obchodní tým je oslabený. Chybí jasný prodejní proces, pipeline a odpovědnost za výsledky.</span>
+      </div>
+      <div class="problem-item">
+        <span class="problem-num">P3</span>
+        <span class="problem-text">Kvalitní lidé odcházejí. Bez systémové změny se tento trend nezastaví sám od sebe.</span>
+      </div>
+      <div class="problem-item">
+        <span class="problem-num">P4</span>
+        <span class="problem-text">Technologické zaostávání: web, nástroje ani interní procesy neodpovídají roku 2026.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MISE + VIZE -->
+  <div class="sec-title"><span class="sec-num">00 /</span><h2>Mise & Vize</h2></div>
+  <p class="sec-desc">Transformace musí začít jasnou odpovědí na dvě základní otázky: Proč existujeme? A kam směřujeme?</p>
+
+  <div class="mv-grid">
+    <div class="mv-card">
+      <div class="mv-label">Mise — proč existujeme</div>
+      <div class="mv-text">Pomáháme zákazníkům pracovat rychleji, jistěji a efektivněji.</div>
+      <div class="mv-explain">Mise se nesmí měnit každý rok. Je to kotva firmy — důvod, proč vstáváme ráno a proč zákazníci platí. Každé rozhodnutí vedení by mělo být testováno otázkou: „Pomáhá to naší misi?"</div>
+    </div>
+    <div class="mv-card">
+      <div class="mv-label">Vize — kam jdeme do roku 2030</div>
+      <div class="mv-text">Stát se technologicky řízenou obchodní platformou, která roste bez závislosti na jednotlivcích.</div>
+      <div class="mv-explain">Vize je ambiciózní, ale dosažitelná. Klíčové slovo je „systém" — firma, která funguje jako firma, ne jako živnostník s deseti zaměstnanci. To je přesně to, co budujeme.</div>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="sec-title"><span class="sec-num">01 /</span><h2>Cílové výsledky po 90 dnech</h2></div>
+  <p class="sec-desc">Výsledky, které budeme měřit. Ne pocity, ne dojmy — čísla a stav.</p>
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <span class="kpi-ico">🏛️</span>
+      <div class="kpi-val" style="color:var(--phase1)">Stabilní</div>
+      <div class="kpi-nm">Tým & vedení</div>
+      <div class="kpi-note">Jasné role, odpovědnosti a pravidla pro každého. Žádné „to není moje věc".</div>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-ico">📊</span>
+      <div class="kpi-val" style="color:var(--phase2)">KPI live</div>
+      <div class="kpi-nm">Systém řízení výkonu</div>
+      <div class="kpi-note">Každý týden víme, jak si stojíme. Žádné překvapení na konci čtvrtletí.</div>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-ico">💼</span>
+      <div class="kpi-val" style="color:var(--phase3)">Pipeline</div>
+      <div class="kpi-nm">Fungující obchod</div>
+      <div class="kpi-note">Obchodní tým má proces, nástroje a cíle. První měřitelné výsledky vidíme do 60 dnů.</div>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-ico">🚀</span>
+      <div class="kpi-val" style="color:var(--accent4)">Systém</div>
+      <div class="kpi-nm">Firma bez chaosu</div>
+      <div class="kpi-note">Firma funguje na procesech, ne na jednotlivcích. Výpadek jednoho člověka nezastavý provoz.</div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-brand">KILI · Transformace 2026</div>
+    <div class="footer-note">Interní dokument · Interim manager · Confidential</div>
+  </footer>
+</div>
+</div>
+
+<!-- ════════════════════════════ 90DENNÍ PLÁN ════════════════════════════ -->
+<div id="sec-plan90" class="section">
+<div class="wrap">
+
+  <div class="sec-title" style="margin-top:48px"><span class="sec-num">02 /</span><h2>90denní plán</h2></div>
+  <p class="sec-desc">Transformace je rozdělena do tří fází po 30 dnech. Každá fáze má jasný cíl, konkrétní kroky a měřitelný výsledek. Zaškrtávejte kroky průběžně — uvidíte, jak se posouváte vpřed.</p>
+
+  <div class="progress-widget">
+    <div class="progress-info">
+      <div class="progress-count" id="prog-count">0 / 15</div>
+      <div class="progress-label">kroků splněno</div>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-track-bg">
+        <div class="progress-fill" id="prog-fill"></div>
+      </div>
+      <div class="progress-phases">
+        <span class="progress-phase-lbl">Den 0</span>
+        <span class="progress-phase-lbl">Den 30</span>
+        <span class="progress-phase-lbl">Den 60</span>
+        <span class="progress-phase-lbl">Den 90</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="phases">
+
+    <!-- FÁZE 1 -->
+    <div class="phase-card p1">
+      <div class="phase-head">
+        <div class="phase-head-left">
+          <div class="phase-tag">Fáze 1</div>
+          <div class="phase-name">Stabilizace</div>
+        </div>
+        <div class="phase-days-badge">Dny 0–30</div>
+      </div>
+      <div class="phase-body">
+        <div class="phase-goal">Cíl: Zastavit krvácení. Identifikovat klíčové lidi, nastavit základní pravidla a uklidnit situaci uvnitř firmy. Dokud není tým stabilní, nemá smysl řešit nic jiného.</div>
+        <ul class="step-list" id="steps1">
+          <li class="step-item" onclick="toggleStep(this,'p1')">
+            <div class="step-cb" style="border-color:var(--phase1);color:var(--phase1)"></div>
+            <span class="step-text">Hloubkový audit týmu — A/B/C hráči, kdo zůstane, kdo odejde</span>
+          </li>
+          <li class="step-item" onclick="toggleStep(this,'p1')">
+            <div class="step-cb" style="border-color:var(--phase1);color:var(--phase1)"></div>
+            <span class="step-text">Individuální rozhovory se všemi klíčovými lidmi — co funguje, co ne</span>
+          </li>
+          <li class="step-item" onclick="toggleStep(this,'p1')">
+            <div class="step-cb" style="border-color:var(--phase1);color:var(--phase1)"></div>
+            <span class="step-text">Okamžitá personální rozhodnutí — nikdo nesmí být v nejistotě déle než 2 týdny</span>
+          </li>
+          <li class="step-item" onclick="toggleStep(this,'p1')">
+            <div class="step-cb" style="border-color:var(--phase1);color:var(--phase1)"></div>
+            <span class="step-text">Zavedení pravidelných týdenních porad s jasnou strukturou a agendou</span>
+          </li>
+          <li class="step-item" onclick="toggleStep(this,'p1')">
+            <div class="step-cb" style="border-color:var(--phase1);color:var(--phase1)"></div>
+            <span class="step-text">Definice mise, vize a 3 krátkodobých priorit — každý musí vědět, kam jdeme</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- FÁZE 2 -->
+    <div class="phase-card p2">
+      <div class="phase-head">
+        <div class="phase-head-left">
+          <div class="phase-tag">Fáze 2</div>
+          <div class="phase-name">Nastavení systému</div>
+        </div>
+        <div class="phase-days-badge">Dny 30–60</div>
+      </div>
+      <div class="phase-body">
+        <div class="phase-goal">Cíl: Nahradit chaos strukturou. Každý ví, co se od něj čeká, jak bude hodnocen a jak firma rozhoduje. Obchod dostane jasný proces a nástroje.</div>
+        <ul class="step-list" id="steps2">
+          <li class="step-item" onclick="toggleStep(this,'p2')">
+            <div class="step-cb" style="border-color:var(--phase2);color:var(--phase2)"></div>
+            <span class="step-text">Zavedení KPI pro každou roli — obchod, provoz, vedení</span>
+          </li>
+          <li class="step-item" onclick="toggleStep(this,'p2')">
+            <div class="step-cb" style="border-color:var(--phase2);color:var(--phase2)"></div>
+            <span class="step-text">Standardizace obchodního procesu od prvního kontaktu po podpis smlouvy</span>
+          </li>
+          <li class="step-item" onclick="toggleStep(this,'p2')">
+            <div class="step-cb" style="border-color:var(--phase2);color:var(--phase2)"></div>
+            <span class="step-text">Nastavení jasných odpovědností a pravomocí — kdo co schvaluje</span>
+          </li>
+          <li class="step-item" onclick="toggleStep(this,'p2')">
+            <div class="step-cb" style="border-color:var(--phase2);color:var(--phase2)"></div>
+            <span class="step-text">První úpravy webu a externí komunikace — první dojem musí sedět</span>
+          </li>
+          <li class="step-item" onclick="toggleStep(this,'p2')">
+            <div class="step-cb" style="border-color:var(--phase2);color:var(--phase2)"></div>
+            <span class="step-text">Zavedení CRM a sledování obchodní pipeline v reálném čase</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- FÁZE 3 -->
+    <div class="phase-card p3">
+      <div class="phase-head">
+        <div class="phase-head-left">
+          <div class="phase-tag">Fáze 3</div>
+          <div class="phase-name">Výkon & Růst</div>
+        </div>
+        <div class="phase-days-badge">Dny 60–90</div>
+      </div>
+      <div class="phase-body">
+        <div class="phase-goal">Cíl: Systém funguje, teď ho roztočíme naplno. Aktivujeme zákazníky, spustíme marketing a zahájíme první technologické projekty.</div>
+        <ul class="step-list" id="steps3">
+          <li class="step-item" onclick="toggleStep(this,'p3')">
+            <div class="step-cb" style="border-color:var(--phase3);color:var(--phase3)"></div>
+            <span class="step-text">Aktivace zákaznické databáze — reaktivace dormantních zákazníků</span>
+          </li>
+          <li class="step-item" onclick="toggleStep(this,'p3')">
+            <div class="step-cb" style="border-color:var(--phase3);color:var(--phase3)"></div>
+            <span class="step-text">Spuštění prvních marketingových aktivit s měřitelným výstupem</span>
+          </li>
+          <li class="step-item" onclick="toggleStep(this,'p3')">
+            <div class="step-cb" style="border-color:var(--phase3);color:var(--phase3)"></div>
+            <span class="step-text">Zavedení základní automatizace opakujících se procesů</span>
+          </li>
+          <li class="step-item" onclick="toggleStep(this,'p3')">
+            <div class="step-cb" style="border-color:var(--phase3);color:var(--phase3)"></div>
+            <span class="step-text">Vyhodnocení 90 dnů — co funguje, co ne, co měníme dál</span>
+          </li>
+          <li class="step-item" onclick="toggleStep(this,'p3')">
+            <div class="step-cb" style="border-color:var(--phase3);color:var(--phase3)"></div>
+            <span class="step-text">Příprava plánu na rok 2027 — firma se řídí sama, interim manažer předává</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <div class="footer-brand">KILI · 90denní plán</div>
+    <div class="footer-note">Interní dokument · Interim manager · Confidential</div>
+  </footer>
+</div>
+</div>
+
+<!-- ════════════════════════════ STRATEGIE 2026–2030 ════════════════════════════ -->
+<div id="sec-strategie" class="section">
+<div class="wrap">
+
+  <div class="sec-title" style="margin-top:48px"><span class="sec-num">03 /</span><h2>Strategie 2026–2030</h2></div>
+  <p class="sec-desc">Pětileté myšlení v praxi. Každý rok má jasný fokus, konkrétní cíle a měřitelné výsledky. Transformace není sprint — je to maraton s etapovými cíli.</p>
+
+  <div class="timeline">
+
+    <div class="year-block">
+      <div class="year-dot" style="color:var(--phase1); border-color:var(--phase1)"><div class="year-dot-inner"></div></div>
+      <div class="year-label" style="color:var(--phase1)">▶ 2026 — Rok 1</div>
+      <div class="year-title">Stabilizace & Základ</div>
+      <div class="year-desc">
+        Rok 2026 je o přežití a základech. Ne o růstu, ne o expanzi — o tom, aby firma přestala ztrácet lidi a příležitosti. Zavedeme fungující tým, jasné řízení a obchodní systém. Pokud to neuděláme teď, každý rok bez základů bude dražší a bolestivější.
+        <br><br>
+        Klíčová otázka tohoto roku: <em>„Funguje firma jako systém, nebo stále závisí na konkrétních lidech?"</em>
+      </div>
+      <div class="year-targets">
+        <span class="target-chip" style="color:var(--phase1)">🎯 90denní plán spuštěn</span>
+        <span class="target-chip" style="color:var(--phase1)">👥 Stabilní tým bez odchodů</span>
+        <span class="target-chip" style="color:var(--phase1)">📊 KPI systém funkční</span>
+        <span class="target-chip" style="color:var(--phase1)">💼 Obchodní pipeline live</span>
+      </div>
+    </div>
+
+    <div class="year-block">
+      <div class="year-dot" style="color:var(--phase2); border-color:var(--phase2)"><div class="year-dot-inner"></div></div>
+      <div class="year-label" style="color:var(--phase2)">▶ 2027 — Rok 2</div>
+      <div class="year-title">Růst & Tržní pozice</div>
+      <div class="year-desc">
+        Firma má základ — teď roste. Cílem roku 2027 je nárůst produktivity o 50 %, posílení zákaznické retence a jasné tržní postavení. Začínáme obsazovat nové segmenty zákazníků a budujeme digitální kanály, které generují poptávku bez závislosti na osobních vztazích.
+        <br><br>
+        Klíčová otázka: <em>„Proč si zákazník vybere nás a ne konkurenci?"</em>
+      </div>
+      <div class="year-targets">
+        <span class="target-chip" style="color:var(--phase2)">📈 Produktivita +50 %</span>
+        <span class="target-chip" style="color:var(--phase2)">🔄 LTV zákazníka +30 %</span>
+        <span class="target-chip" style="color:var(--phase2)">🌐 Nové digitální kanály</span>
+        <span class="target-chip" style="color:var(--phase2)">🏆 Jasný positioning</span>
+      </div>
+    </div>
+
+    <div class="year-block">
+      <div class="year-dot" style="color:var(--accent3)"><div class="year-dot-inner" style="background:var(--accent3)"></div></div>
+      <div class="year-label" style="color:var(--accent3)">▶ 2028 — Rok 3</div>
+      <div class="year-title">Technologický skok</div>
+      <div class="year-desc">
+        Rok 2028 je o technologii jako konkurenční výhodě. Ne o digitalizaci pro digitalizaci — o tom, aby technologie šetřila čas, peníze a snižovala závislost na lidském faktoru. Zavádíme automatizaci obchodního procesu, prediktivní analytiku zákazníků a moderní interní systémy.
+        <br><br>
+        Klíčová otázka: <em>„Co z toho, co dnes děláme ručně, může dělat systém za nás?"</em>
+      </div>
+      <div class="year-targets">
+        <span class="target-chip" style="color:var(--accent3)">🤖 Automatizace klíčových procesů</span>
+        <span class="target-chip" style="color:var(--accent3)">📡 Data-driven rozhodování</span>
+        <span class="target-chip" style="color:var(--accent3)">⚡ Nový technologický stack</span>
+      </div>
+    </div>
+
+    <div class="year-block">
+      <div class="year-dot" style="color:var(--accent4); border-color:var(--accent4)"><div class="year-dot-inner"></div></div>
+      <div class="year-label" style="color:var(--accent4)">▶ 2029 — Rok 4</div>
+      <div class="year-title">Expanze & Nové segmenty</div>
+      <div class="year-desc">
+        Firma je stabilní, roste a má technologický základ. Rok 2029 je o expanzi — nové zákaznické segmenty, možná nové geografie nebo produktové linie. Rozhodnutí o expanzi musí vycházet z dat, ne z pocitů. Firma, která expanduje bez systému, se zhroutí. My systém máme.
+        <br><br>
+        Klíčová otázka: <em>„Kde je největší nepokrytá příležitost, na kterou jsme připraveni?"</em>
+      </div>
+      <div class="year-targets">
+        <span class="target-chip" style="color:var(--accent4)">🗺️ Nové segmenty nebo geografie</span>
+        <span class="target-chip" style="color:var(--accent4)">📦 Rozšíření produktového portfolia</span>
+        <span class="target-chip" style="color:var(--accent4)">🤝 Strategická partnerství</span>
+      </div>
+    </div>
+
+    <div class="year-block" style="padding-bottom:0">
+      <div class="year-dot" style="color:var(--accent); border-color:var(--accent)"><div class="year-dot-inner"></div></div>
+      <div class="year-label" style="color:var(--accent)">▶ 2030 — Rok 5</div>
+      <div class="year-title">Škálovatelná firma bez závislosti na jednotlivcích</div>
+      <div class="year-desc">
+        Toto je cílový stav. Firma v roce 2030 funguje jako skutečná firma — má systémy, procesy, kulturu a tým, který nevyžaduje neustálou přítomnost zakladatelů nebo externího manažera. Roste předvídatelně, zákazníci se vracejí a firma je atraktivní pro investory nebo případné nástupce.
+        <br><br>
+        Klíčová otázka: <em>„Fungovala by firma stejně dobře, kdybychom dnes nebyli v kanceláři?"</em>
+      </div>
+      <div class="year-targets">
+        <span class="target-chip" style="color:var(--accent)">🏆 Firma jako plně řízený systém</span>
+        <span class="target-chip" style="color:var(--accent)">📈 Předvídatelný a opakující se růst</span>
+        <span class="target-chip" style="color:var(--accent)">💎 Atraktivní pro investory</span>
+        <span class="target-chip" style="color:var(--accent)">🔄 Nástupnictví připraveno</span>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <div class="footer-brand">KILI · Strategie 2026–2030</div>
+    <div class="footer-note">Interní dokument · Interim manager · Confidential</div>
+  </footer>
+</div>
+</div>
+
+<!-- ════════════════════════════ 5 PILÍŘŮ ════════════════════════════ -->
+<div id="sec-pilire" class="section">
+<div class="wrap">
+
+  <div class="sec-title" style="margin-top:48px"><span class="sec-num">04 /</span><h2>Pět pilířů transformace</h2></div>
+  <p class="sec-desc">Transformace nestojí na jednom projektu ani na jednom člověku. Stojí na pěti propojených oblastech. Kliknutím na každý pilíř zobrazíte detail — co přesně děláme, proč a jak to poznat, že to funguje.</p>
+
+  <div class="pillars-grid">
+    <div class="pillar" style="--c:#4fd1c5" onclick="togglePillar('lide',this)">
+      <div class="pillar-ico">👥</div>
+      <div class="pillar-nm">Lidé & Kultura</div>
+    </div>
+    <div class="pillar" style="--c:#e8c840" onclick="togglePillar('rizeni',this)">
+      <div class="pillar-ico">🏛️</div>
+      <div class="pillar-nm">Řízení firmy</div>
+    </div>
+    <div class="pillar" style="--c:#ff6b35" onclick="togglePillar('obchod',this)">
+      <div class="pillar-ico">💼</div>
+      <div class="pillar-nm">Obchodní model</div>
+    </div>
+    <div class="pillar" style="--c:#9f7aea" onclick="togglePillar('tech',this)">
+      <div class="pillar-ico">⚙️</div>
+      <div class="pillar-nm">Technologie</div>
+    </div>
+    <div class="pillar" style="--c:#fc8181" onclick="togglePillar('marketing',this)">
+      <div class="pillar-ico">📣</div>
+      <div class="pillar-nm">Marketing & Značka</div>
+    </div>
+  </div>
+
+  <!-- Pillar details -->
+  <div id="pd-lide" class="pillar-detail" style="--c:#4fd1c5">
+    <div class="pd-header">
+      <div>
+        <div class="pd-title" style="color:#4fd1c5">👥 Lidé & Kultura</div>
+        <div class="pd-subtitle">Toto je absolutní priorita číslo jedna. Bez stabilního a motivovaného týmu nezafunguje žádná jiná změna. Nezáleží na tom, jak dobrá je strategie — špatný tým ji nezrealizuje.</div>
+      </div>
+      <button class="pd-close" onclick="closePillar('lide')">✕</button>
+    </div>
+    <div class="pd-cols">
+      <div>
+        <div class="pd-col-title">Co konkrétně děláme</div>
+        <ul class="pd-items">
+          <li class="pd-item"><span class="pd-arrow">→</span>Audit všech pozic: kdo přidává hodnotu (A hráč), kdo je průměrný (B hráč), kdo škodí (C hráč)</li>
+          <li class="pd-item"><span class="pd-arrow">→</span>Individuální rozhovory s každým členem týmu — bez HR fráze, s upřímnou zpětnou vazbou</li>
+          <li class="pd-item"><span class="pd-arrow">→</span>Jasná pravidla spolupráce: co se tady očekává, jak se rozhoduje, jak vypadá úspěch</li>
+          <li class="pd-item"><span class="pd-arrow">→</span>Okamžité personální rozhodnutí — nespravedlivá nejistota demotivuje celý tým</li>
+          <li class="pd-item"><span class="pd-arrow">→</span>Plán rozvoje pro klíčové lidi — udržíme ty nejlepší tím, že jim dáme perspektivu</li>
+        </ul>
+      </div>
+      <div>
+        <div class="pd-col-title">Jak poznáme, že to funguje</div>
+        <ul class="pd-items">
+          <li class="pd-item"><span class="pd-arrow">✓</span>Odchody klíčových lidí se zastaví do 30 dnů</li>
+          <li class="pd-item"><span class="pd-arrow">✓</span>Každý zaměstnanec ví, co se od něj čeká a jak bude hodnocen</li>
+          <li class="pd-item"><span class="pd-arrow">✓</span>Porady mají výsledky, ne jen diskuze</li>
+          <li class="pd-item"><span class="pd-arrow">✓</span>Lidé přicházejí s problémy nahoru, ne je schovávají</li>
+          <li class="pd-item"><span class="pd-arrow">✓</span>Nový člen týmu se rychle zorientuje díky jasným procesům</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="pd-rizeni" class="pillar-detail" style="--c:#e8c840">
+    <div class="pd-header">
+      <div>
+        <div class="pd-title" style="color:#e8c840">🏛️ Řízení firmy</div>
+        <div class="pd-subtitle">Problém firmy není produkt ani trh. Problém je způsob řízení. Firma dnes není systém — je to operativa bez strategie. Řízení se musí stát každodenní praxí, ne výjimečnou aktivitou.</div>
+      </div>
+      <button class="pd-close" onclick="closePillar('rizeni')">✕</button>
+    </div>
+    <div class="pd-cols">
+      <div>
+        <div class="pd-col-title">Co konkrétně děláme</div>
+        <ul class="pd-items">
+          <li class="pd-item"><span class="pd-arrow">→</span>Týdenní management meetingy s pevnou strukturou: čísla, priority, překážky, rozhodnutí</li>
+          <li class="pd-item"><span class="pd-arrow">→</span>KPI dashboard — každý týden v pondělí vidí vedení aktuální stav firmy</li>
+          <li class="pd-item"><span class="pd-arrow">→</span>Jasný rozhodovací rámec: co může rozhodnout každý sám, co potřebuje souhlas nadřízené</li>
+          <li class="pd-item"><span class="pd-arrow">→</span>Kvartální review: kde jsme, kam jdeme, co měníme</li>
+          <li class="pd-item"><span class="pd-arrow">→</span>Management, který vede lidi k výsledkům — ne ten, kdo hasí každý den požáry</li>
+        </ul>
+      </div>
+      <div>
+        <div class="pd-col-title">Jak poznáme, že to funguje</div>
+        <ul class="pd-items">
+          <li class="pd-item"><span class="pd-arrow">✓</span>Vedení neztrácí čas operativou, soustředí se na strategii</li>
+          <li class="pd-item"><span class="pd-arrow">✓</span>Každé rozhodnutí má vlastníka a termín</li>
+          <li class="pd-item"><span class="pd-arrow">✓</span>Firma nefunguje jinak, když klíčový manažer odjede na dovolenou</li>
+          <li class="pd-item"><span class="pd-arrow">✓</span>Problémy se řeší strukturovaně, ne intuitivně</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="pd-obchod" class="pillar-detail" style="--c:#ff6b35">
+    <div class="pd-header">
+      <div>
+        <div class="pd-title" style="color:#ff6b35">💼 Obchodní model</div>
+        <div class="pd-subtitle">Bez fungujícího obchodu neexistuje firma. Obchodní tým potřebuje jasný proces, nástroje, cíle a kouče — ne jen volné pole a přání „prodávejte více".</div>
+      </div>
+      <button class="pd-close" onclick="closePillar('obchod')">✕</button>
+    </div>
+    <div class="pd-cols">
+      <div>
+        <div class="pd-col-title">Co konkrétně děláme</div>
+        <ul class="pd-items">
+          <li class="pd-item"><span class="pd-arrow">→</span>Definice ideálního zákazníka (ICP) — na koho se soustředíme, koho odmítáme</li>
+          <li class="pd-item"><span class="pd-arrow">→</span>Standardizace prodejního procesu od prvního kontaktu po podpis smlouvy</li>
+          <li class="pd-item"><span class="pd-arrow">→</span>CRM systém — pipeline musí být viditelná celému vedení v reálném čase</li>
+          <li class="pd-item"><span class="pd-arrow">→</span>Cenová strategie — prodáváme hodnotu, ne cenu</li>
+          <li class="pd-item"><span class="pd-arrow">→</span>Reaktivace stávající zákaznické základny — levnější než akvizice nových zákazníků</li>
+        </ul>
+      </div>
+      <div>
+        <div class="pd-col-title">Jak poznáme, že to funguje</div>
+        <ul class="pd-items">
+          <li class="pd-item"><span class="pd-arrow">✓</span>Pipeline roste a je předvídatelná</li>
+          <li class="pd-item"><span class="pd-arrow">✓</span>Obchodní tým ví, kolik musí prodat každý měsíc a jak se k tomu dostat</li>
+          <li class="pd-item"><span class="pd-arrow">✓</span>Konverzní poměr se zlepšuje každý kvartál</li>
+          <li class="pd-item"><span class="pd-arrow">✓</span>Zákazníci se vracejí a referují nás dál</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="pd-tech" class="pillar-detail" style="--c:#9f7aea">
+    <div class="pd-header">
+      <div>
+        <div class="pd-title" style="color:#9f7aea">⚙️ Technologie</div>
+        <div class="pd-subtitle">Zastaralá technologie zpomaluje celou firmu. Modernizace musí být pragmatická — ne technologie pro technologii, ale technologie, která šetří čas a peníze.</div>
+      </div>
+      <button class="pd-close" onclick="closePillar('tech')">✕</button>
+    </div>
+    <div class="pd-cols">
+      <div>
+        <div class="pd-col-title">Co konkrétně děláme</div>
+        <ul class="pd-items">
+          <li class="pd-item"><span class="pd-arrow">→</span>Audit aktuálního technologického stavu — co používáme, co nás zdržuje, co schází</li>
+          <li class="pd-item"><span class="pd-arrow">→</span>Modernizace webu — první dojem je klíčový, web z roku 2018 škodí důvěryhodnosti</li>
+          <li class="pd-item"><span class="pd-arrow">→</span>Zavedení CRM, projektového nástroje a interní komunikace (pokud chybí)</li>
+          <li class="pd-item"><span class="pd-arrow">→</span>Automatizace opakujících se procesů — reporty, upomínky, onboarding</li>
+          <li class="pd-item"><span class="pd-arrow">→</span>Tech roadmap na 24 měsíců — co kdy budujeme a proč</li>
+        </ul>
+      </div>
+      <div>
+        <div class="pd-col-title">Jak poznáme, že to funguje</div>
+        <ul class="pd-items">
+          <li class="pd-item"><span class="pd-arrow">✓</span>Tým netráví čas manuálními úkoly, které může dělat systém</li>
+          <li class="pd-item"><span class="pd-arrow">✓</span>Web generuje poptávky bez závislosti na osobních doporučeních</li>
+          <li class="pd-item"><span class="pd-arrow">✓</span>Data jsou dostupná centrálně, ne rozeseta v e-mailech a Excelu</li>
+          <li class="pd-item"><span class="pd-arrow">✓</span>Nový zákazník nebo zaměstnanec se onboarduje rychle a bez chaosu</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="pd-marketing" class="pillar-detail" style="--c:#fc8181">
+    <div class="pd-header">
+      <div>
+        <div class="pd-title" style="color:#fc8181">📣 Marketing & Značka</div>
+        <div class="pd-subtitle">Marketing není první priorita — ale bez fungující komunikace firma nevyužívá svůj potenciál. Budujeme značku, která přitahuje správné zákazníky a nejlepší lidi na trhu práce.</div>
+      </div>
+      <button class="pd-close" onclick="closePillar('marketing')">✕</button>
+    </div>
+    <div class="pd-cols">
+      <div>
+        <div class="pd-col-title">Co konkrétně děláme</div>
+        <ul class="pd-items">
+          <li class="pd-item"><span class="pd-arrow">→</span>Jasný positioning — kdo jsme, pro koho jsme a proč nás zákazník vybere</li>
+          <li class="pd-item"><span class="pd-arrow">→</span>Hodnotová propozice, které zákazník rozumí do 5 sekund</li>
+          <li class="pd-item"><span class="pd-arrow">→</span>Obsahová strategie — budujeme důvěryhodnost, ne jen reklamu</li>
+          <li class="pd-item"><span class="pd-arrow">→</span>Employer branding — přitahujeme dobré lidi, kteří chtějí pracovat u firmy s vizí</li>
+          <li class="pd-item"><span class="pd-arrow">→</span>Vše měřitelné — každá aktivita má cíl a výsledek, který hodnotíme</li>
+        </ul>
+      </div>
+      <div>
+        <div class="pd-col-title">Jak poznáme, že to funguje</div>
+        <ul class="pd-items">
+          <li class="pd-item"><span class="pd-arrow">✓</span>Zákazníci sami vyhledávají firmu, ne jen reagují na naše volání</li>
+          <li class="pd-item"><span class="pd-arrow">✓</span>Uchazeči o práci znají firmu a chtějí v ní pracovat</li>
+          <li class="pd-item"><span class="pd-arrow">✓</span>Zákazníci dokáží jednoduše vysvětlit, co firma dělá a proč je dobrá</li>
+          <li class="pd-item"><span class="pd-arrow">✓</span>Marketingové investice mají měřitelnou návratnost</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-brand">KILI · Pět pilířů</div>
+    <div class="footer-note">Interní dokument · Interim manager · Confidential</div>
+  </footer>
+</div>
+</div>
+
+<!-- ════════════════════════════ RIZIKA ════════════════════════════ -->
+<div id="sec-rizika" class="section">
+<div class="wrap">
+
+  <div class="sec-title" style="margin-top:48px"><span class="sec-num">05 /</span><h2>Rizika & Jak je zvládnout</h2></div>
+  <p class="sec-desc">Každá transformace naráží na překážky. Tady jsou nejčastější — a jak s nimi pracovat předtím, než se z nich stanou krize.</p>
+
+  <div class="risk-cards">
+
+    <div class="risk-card">
+      <div class="risk-sev" style="color:#ff6b35">🔴 Vysoké riziko</div>
+      <div class="risk-title">Management odmítá změnu</div>
+      <div class="risk-desc">Největší brzdou transformace jsou lidé ve vedení, kteří změnu slovně přijímají, ale v praxi ji sabotují — odkládají rozhodnutí, přetěžují tým operativou a brání implementaci nových pravidel.</div>
+      <div class="risk-fix" style="color:#ff6b35">→ Řešení: Jasná odpovědnost a pravidelné vyhodnocení závazků. Bez výsledků po 30 dnech — personální rozhodnutí.</div>
+    </div>
+
+    <div class="risk-card">
+      <div class="risk-sev" style="color:#ff6b35">🔴 Vysoké riziko</div>
+      <div class="risk-title">Odchod klíčových lidí v průběhu</div>
+      <div class="risk-desc">Transformace destabilizuje prostředí. Nejistota motivuje nejlepší lidi k odchodu — přesně ty, které potřebujeme nejvíce. Toto riziko je nejvyšší v prvních 30 dnech.</div>
+      <div class="risk-fix" style="color:#ff6b35">→ Řešení: Okamžitá komunikace záměrů a perspektivy. Klíčoví lidé musí vědět, že mají místo a budoucnost.</div>
+    </div>
+
+    <div class="risk-card">
+      <div class="risk-sev" style="color:#e8c840">🟡 Střední riziko</div>
+      <div class="risk-title">Implementace se zpomalí nebo zastaví</div>
+      <div class="risk-desc">Operativa každodenního provozu pohltí veškerou energii. Transformační aktivity se odkládají s odůvodněním „teď na to není čas". Výsledek: po 6 měsících jsme tam, kde jsme začínali.</div>
+      <div class="risk-fix" style="color:#e8c840">→ Řešení: Vyhrazený čas na transformaci v kalendáři. Interim manažer hlídá tempo a nedovolí únik do operativy.</div>
+    </div>
+
+    <div class="risk-card">
+      <div class="risk-sev" style="color:#e8c840">🟡 Střední riziko</div>
+      <div class="risk-title">Zákazníci pocítí interní chaos</div>
+      <div class="risk-desc">Reorganizace se může projevit navenek — zpomalené reakce, zmatená komunikace, změna kontaktů. Zákazník to vnímá jako nejistotu a hledá alternativy.</div>
+      <div class="risk-fix" style="color:#e8c840">→ Řešení: Proaktivní komunikace s klíčovými zákazníky. Změna se prezentuje jako modernizace, ne jako krize.</div>
+    </div>
+
+    <div class="risk-card">
+      <div class="risk-sev" style="color:#4fd1c5">🟢 Nízké riziko</div>
+      <div class="risk-title">Technologická implementace se protáhne</div>
+      <div class="risk-desc">IT projekty mají tendenci překračovat termíny a rozpočty. Pokud technologie není core business, je riziko nižší — ale stále reálné.</div>
+      <div class="risk-fix" style="color:#4fd1c5">→ Řešení: Jasný scope, termíny a zodpovědný vlastník každého projektu. Žádné „uvidíme".</div>
+    </div>
+
+    <div class="risk-card" style="background:rgba(232,200,64,0.04); border-color:rgba(232,200,64,0.25)">
+      <div class="risk-sev" style="color:var(--accent)">⚡ Největší riziko ze všech</div>
+      <div class="risk-title" style="color:var(--accent)">Že se nic nezmění</div>
+      <div class="risk-desc">Tím největším rizikem není trh, konkurence ani technologie. Je to rozhodnutí neprovést změnu. Každý týden bez systémové změny řízení prodražuje budoucí transformaci a prohlubuje ztráty.</div>
+      <div class="risk-fix" style="color:var(--accent)">→ Status quo není neutrální volba. Je to aktivní rozhodnutí pokračovat v klesajícím trendu.</div>
+    </div>
+
+  </div>
+
+  <footer>
+    <div class="footer-brand">KILI · Rizika</div>
+    <div class="footer-note">Interní dokument · Interim manager · Confidential</div>
+  </footer>
+</div>
+</div>
+
+<!-- ════════════════════════════ PRŮVODCE TRANSFORMACÍ ════════════════════════════ -->
+<div id="guide-overlay" class="guide-overlay">
+<div class="guide-wrap">
+
+  <div class="guide-header">
+    <div class="guide-header-left">
+      <div class="guide-badge"><div class="badge-dot"></div>Průvodce krok za krokem</div>
+      <div class="guide-title">Jak spustit<br>transformaci</div>
+      <div class="guide-intro">Tohle je váš praktický průvodce. Každý krok je rozebrán do hloubky — co dělat, proč to dělat, jak to konkrétně provést a jak poznáte, že jste to udělali správně. Postupujte v pořadí. Nepřeskakujte.</div>
+    </div>
+    <button class="guide-close" onclick="closeGuide()">✕ Zavřít průvodce</button>
+  </div>
+
+  <!-- PHASE 1 -->
+  <div class="guide-phase-title">
+    <span class="guide-phase-num" style="background:rgba(79,209,197,0.1);color:var(--phase1)">Fáze 1</span>
+    <span class="guide-phase-name" style="color:var(--phase1)">Stabilizace</span>
+    <span class="guide-phase-days">Dny 0–30</span>
+  </div>
+
+  <div class="guide-step" onclick="toggleGuideStep(this)">
+    <div class="guide-step-head">
+      <div class="guide-step-num" style="color:var(--phase1)">1</div>
+      <div>
+        <div class="guide-step-title">Hodnocení lidí: kdo je A, B nebo C hráč</div>
+        <div class="guide-step-subtitle">Audit týmu — váš první a nejdůležitější krok</div>
+      </div>
+      <div class="guide-step-toggle">▾</div>
+    </div>
+    <div class="guide-step-body">
+      <div class="guide-step-why">
+        <strong>Proč to děláme jako první?</strong> Protože bez stabilního a správného týmu nezafunguje žádná jiná změna. Je jako opravovat střechu, když hoří dům. Nejdřív musíte vědět, na koho se můžete spolehnout.
+      </div>
+      <div class="guide-how-title">Jak konkrétně postupovat</div>
+      <ul class="guide-actions">
+        <li class="guide-action">
+          <div class="guide-action-num" style="background:var(--phase1)">1</div>
+          <span>Připravte si seznam všech členů týmu. Pro každého si odpovězte na 3 otázky: Dosahuje výsledků? Chová se v souladu s hodnotami firmy? Přijal by ho zpět, kdybyste ho nepřijali dříve?</span>
+        </li>
+        <li class="guide-action">
+          <div class="guide-action-num" style="background:var(--phase1)">2</div>
+          <span>Zařaďte každého do kategorie A, B nebo C podle tabulky níže. Buďte přísní — v pochybnostech zařaďte do nižší kategorie.</span>
+        </li>
+        <li class="guide-action">
+          <div class="guide-action-num" style="background:var(--phase1)">3</div>
+          <span>S každým A hráčem naplánujte 1:1 rozhovor do 5 dnů. Řekněte jim, že jsou pro firmu klíčoví a co pro ně firma plánuje. Neztrácejte nejlepší lidi kvůli nejistotě.</span>
+        </li>
+        <li class="guide-action">
+          <div class="guide-action-num" style="background:var(--phase1)">4</div>
+          <span>O C hráčích rozhodněte do 2 týdnů. Čím déle odkládáte těžká personální rozhodnutí, tím více demotivují celý tým. Ostatní vidí, že se nic neděje, a přestanou věřit, že změna je myšlena vážně.</span>
+        </li>
+      </ul>
+      <table class="rating-table">
+        <tr>
+          <th>Kategorie</th>
+          <th>Definice</th>
+          <th>Co s nimi děláme</th>
+        </tr>
+        <tr>
+          <td><span class="rating-a">A hráč</span></td>
+          <td>Vysoce výkonný, roste, chová se v souladu s hodnotami. Chceme ho klonovat.</td>
+          <td>Investujeme do jejich rozvoje, dáme jim větší odpovědnost, udržíme je za každou cenu.</td>
+        </tr>
+        <tr>
+          <td><span class="rating-b">B hráč</span></td>
+          <td>Průměrný výkon nebo nesoulad s hodnotami. Může se stát A hráčem s podporou.</td>
+          <td>Koučink, jasný plán zlepšení s termínem. Pokud se nezlepší do 60 dnů — přeřadit nebo rozloučit.</td>
+        </tr>
+        <tr>
+          <td><span class="rating-c">C hráč</span></td>
+          <td>Nízký výkon a/nebo toxické chování. Demotivuje okolí svou přítomností.</td>
+          <td>Rychlé a důstojné rozloučení. Zdvořilost, ale jasnost. Čím déle čekáte, tím více škody nadělá.</td>
+        </tr>
+      </table>
+      <div class="guide-output">
+        <div class="guide-output-lbl">Výstup tohoto kroku</div>
+        <div class="guide-output-text">Písemný seznam celého týmu s kategorií A/B/C. Datum 1:1 schůzek s A hráči. Konkrétní rozhodnutí pro každého C hráče do 14 dnů.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="guide-step" onclick="toggleGuideStep(this)">
+    <div class="guide-step-head">
+      <div class="guide-step-num" style="color:var(--phase1)">2</div>
+      <div>
+        <div class="guide-step-title">Individuální rozhovory: naslouchejte, než začnete říkat</div>
+        <div class="guide-step-subtitle">30minutové 1:1 s každým klíčovým členem týmu</div>
+      </div>
+      <div class="guide-step-toggle">▾</div>
+    </div>
+    <div class="guide-step-body">
+      <div class="guide-step-why">
+        <strong>Proč to děláme?</strong> Protože nikdy nevíte, co se skutečně děje uvnitř firmy, dokud se nezeptáte lidí, kteří to zažívají každý den. Manažeři mají tendenci věřit vlastní verzi reality. Pravda je často jinde.
+      </div>
+      <div class="guide-how-title">Otázky, které klademe v každém rozhovoru</div>
+      <ul class="guide-actions">
+        <li class="guide-action">
+          <div class="guide-action-num" style="background:var(--phase1)">→</div>
+          <span>„Co vám v práci brání dělat ji lépe?" — Tato otázka odhalí systémové problémy, ne jen stížnosti.</span>
+        </li>
+        <li class="guide-action">
+          <div class="guide-action-num" style="background:var(--phase1)">→</div>
+          <span>„Kdybys byl na mém místě, co bys změnil jako první?" — Lidé na frontě vědí víc, než si myslíte.</span>
+        </li>
+        <li class="guide-action">
+          <div class="guide-action-num" style="background:var(--phase1)">→</div>
+          <span>„Co tě drží v téhle firmě a co by tě přimělo odejít?" — Musíte to vědět dřív, než to udělají.</span>
+        </li>
+        <li class="guide-action">
+          <div class="guide-action-num" style="background:var(--phase1)">→</div>
+          <span>„Jak hodnotíš vedení firmy — co funguje, co ne?" — Buďte připraveni na nepohodlné odpovědi.</span>
+        </li>
+      </ul>
+      <div class="guide-output">
+        <div class="guide-output-lbl">Výstup tohoto kroku</div>
+        <div class="guide-output-text">Písemné poznámky z každého rozhovoru. Opakující se témata jsou systémové problémy — ty řeší vedení. Individuální problémy řeší přímý nadřízený. Výsledky prezentujte vedení do 10 dnů.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="guide-step" onclick="toggleGuideStep(this)">
+    <div class="guide-step-head">
+      <div class="guide-step-num" style="color:var(--phase1)">3</div>
+      <div>
+        <div class="guide-step-title">Zavedení týdenní porady s pevnou strukturou</div>
+        <div class="guide-step-subtitle">Konec porad bez výsledků — začíná kultura odpovědnosti</div>
+      </div>
+      <div class="guide-step-toggle">▾</div>
+    </div>
+    <div class="guide-step-body">
+      <div class="guide-step-why">
+        <strong>Proč porady s pevnou strukturou?</strong> Protože nestrukturovaná porada je jen rozhovor. Strukturovaná porada je nástroj řízení. Rozdíl je v tom, kdo nese zodpovědnost za výsledky a co se stane, když se výsledky nedostaví.
+      </div>
+      <div class="guide-how-title">Struktura týdenní management porady (60 minut)</div>
+      <ul class="guide-actions">
+        <li class="guide-action">
+          <div class="guide-action-num" style="background:var(--phase1)">1</div>
+          <span><strong>Čísla — 15 min:</strong> Každý vedoucí přednese 2–3 klíčové metriky za uplynulý týden. Žádné komentáře, jen čísla. Problémy se řeší jinde.</span>
+        </li>
+        <li class="guide-action">
+          <div class="guide-action-num" style="background:var(--phase1)">2</div>
+          <span><strong>Priority — 10 min:</strong> Co jsou 3 nejdůležitější věci pro tento týden? Každá má vlastníka a termín.</span>
+        </li>
+        <li class="guide-action">
+          <div class="guide-action-num" style="background:var(--phase1)">3</div>
+          <span><strong>Překážky — 20 min:</strong> Co brání lidem dosáhnout cílů? Vedení odstraňuje překážky — to je jeho hlavní práce.</span>
+        </li>
+        <li class="guide-action">
+          <div class="guide-action-num" style="background:var(--phase1)">4</div>
+          <span><strong>Rozhodnutí — 15 min:</strong> Co potřebuje toto týden rozhodnutí? Rozhodne se na místě nebo do 24 hodin.</span>
+        </li>
+      </ul>
+      <div class="guide-output">
+        <div class="guide-output-lbl">Výstup tohoto kroku</div>
+        <div class="guide-output-text">Pravidelná porada každé pondělí ráno. Zápis s rozhodnutími a odpovědnostmi — sdílený celému vedení do hodiny po poradě. Pokud porada probíhá bez zápisu, jako by neproběhla.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 2 -->
+  <div class="guide-phase-title">
+    <span class="guide-phase-num" style="background:rgba(232,200,64,0.1);color:var(--phase2)">Fáze 2</span>
+    <span class="guide-phase-name" style="color:var(--phase2)">Nastavení systému</span>
+    <span class="guide-phase-days">Dny 30–60</span>
+  </div>
+
+  <div class="guide-step" onclick="toggleGuideStep(this)">
+    <div class="guide-step-head">
+      <div class="guide-step-num" style="color:var(--phase2)">4</div>
+      <div>
+        <div class="guide-step-title">Zavedení KPI — co měříme, to řídíme</div>
+        <div class="guide-step-subtitle">Bez čísel řídíte firmu odhadem. S čísly ji řídíte fakty.</div>
+      </div>
+      <div class="guide-step-toggle">▾</div>
+    </div>
+    <div class="guide-step-body">
+      <div class="guide-step-why">
+        <strong>Proč KPI?</strong> Protože bez měření nevíte, zda jste se zlepšili nebo zhoršili. Pocity klamou, čísla ne. KPI není kontrolní nástroj — je to navigační systém. Stejně jako GPS v autě: nevyčítá vám, kde jste — ukazuje vám, kde jste a kde máte být.
+      </div>
+      <div class="guide-how-title">KPI pro každou oblast — začněte s těmito</div>
+      <ul class="guide-actions">
+        <li class="guide-action">
+          <div class="guide-action-num" style="background:var(--phase2)">→</div>
+          <span><strong>Obchod:</strong> Počet nových schůzek týdně, pipeline hodnota, konverzní poměr, průměrná délka obchodního cyklu</span>
+        </li>
+        <li class="guide-action">
+          <div class="guide-action-num" style="background:var(--phase2)">→</div>
+          <span><strong>Zákazníci:</strong> Retence (kolik zákazníků zůstalo), NPS (doporučují nás?), průměrná hodnota zákazníka za rok</span>
+        </li>
+        <li class="guide-action">
+          <div class="guide-action-num" style="background:var(--phase2)">→</div>
+          <span><strong>Provoz:</strong> Produktivita na zaměstnance, spokojenost týmu (kvartální průzkum), počet eskalovaných problémů</span>
+        </li>
+        <li class="guide-action">
+          <div class="guide-action-num" style="background:var(--phase2)">→</div>
+          <span><strong>Pravidlo:</strong> Maximálně 5 KPI na osobu nebo tým. Víc KPI znamená žádná skutečná priorita. Méně je více.</span>
+        </li>
+      </ul>
+      <div class="guide-output">
+        <div class="guide-output-lbl">Výstup tohoto kroku</div>
+        <div class="guide-output-text">Jeden dokument (nebo dashboard) se všemi KPI, aktuálními hodnotami a cílovými hodnotami. Každý KPI má vlastníka. Aktualizuje se každý týden. Sdílí se celému vedení.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="guide-step" onclick="toggleGuideStep(this)">
+    <div class="guide-step-head">
+      <div class="guide-step-num" style="color:var(--phase2)">5</div>
+      <div>
+        <div class="guide-step-title">Standardizace obchodního procesu</div>
+        <div class="guide-step-subtitle">Prodej nesmí záviset na jedné osobě nebo intuici</div>
+      </div>
+      <div class="guide-step-toggle">▾</div>
+    </div>
+    <div class="guide-step-body">
+      <div class="guide-step-why">
+        <strong>Proč standardizovat?</strong> Protože pokud závisí obchod na jednom obchodníkovi a jeho přístup nelze předat dál, firma je rukojmím. Standardizovaný proces funguje i s novým obchodníkem. A umožňuje zjistit, kde přesně se ztrácejí zákazníci.
+      </div>
+      <div class="guide-how-title">Kroky standardního obchodního procesu</div>
+      <ul class="guide-actions">
+        <li class="guide-action">
+          <div class="guide-action-num" style="background:var(--phase2)">1</div>
+          <span><strong>Kvalifikace:</strong> Splňuje zákazník naše ICP kritéria? Má rozpočet, autoritu, potřebu a časový rámec? Pokud ne — nepokračujeme dál. Čas je drahý.</span>
+        </li>
+        <li class="guide-action">
+          <div class="guide-action-num" style="background:var(--phase2)">2</div>
+          <span><strong>Discovery:</strong> Co zákazník skutečně potřebuje? Ptáme se, ne přesvědčujeme. „Jaký je váš největší problém v této oblasti?" — a pak mlčíme a nasloucháme.</span>
+        </li>
+        <li class="guide-action">
+          <div class="guide-action-num" style="background:var(--phase2)">3</div>
+          <span><strong>Nabídka:</strong> Řešíme konkrétní problém zákazníka — ne generický produkt. Každá nabídka obsahuje: jeho problém, naše řešení, hodnotu (co ušetří nebo vydělá), cenu a další kroky.</span>
+        </li>
+        <li class="guide-action">
+          <div class="guide-action-num" style="background:var(--phase2)">4</div>
+          <span><strong>Uzavření:</strong> Jasný závěr každé schůzky — buď „ano", nebo „ne". Žádné „uvidíme, dáme vám vědět". Dohodněte konkrétní datum a kontakt.</span>
+        </li>
+        <li class="guide-action">
+          <div class="guide-action-num" style="background:var(--phase2)">5</div>
+          <span><strong>CRM záznam:</strong> Každý kontakt, schůzka a rozhodnutí jde do CRM okamžitě. Pokud to není v CRM, jako by se to nestalo.</span>
+        </li>
+      </ul>
+      <div class="guide-output">
+        <div class="guide-output-lbl">Výstup tohoto kroku</div>
+        <div class="guide-output-text">Písemný obchodní playbook maximálně na 2 stránky. Všichni obchodníci ho znají a používají. Pipeline v CRM odpovídá realitě — ne přáním.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 3 -->
+  <div class="guide-phase-title">
+    <span class="guide-phase-num" style="background:rgba(255,107,53,0.1);color:var(--phase3)">Fáze 3</span>
+    <span class="guide-phase-name" style="color:var(--phase3)">Výkon & Růst</span>
+    <span class="guide-phase-days">Dny 60–90</span>
+  </div>
+
+  <div class="guide-step" onclick="toggleGuideStep(this)">
+    <div class="guide-step-head">
+      <div class="guide-step-num" style="color:var(--phase3)">6</div>
+      <div>
+        <div class="guide-step-title">Aktivace stávající zákaznické základny</div>
+        <div class="guide-step-subtitle">Nejlevnější nový obchod je od zákazníka, který vás již zná</div>
+      </div>
+      <div class="guide-step-toggle">▾</div>
+    </div>
+    <div class="guide-step-body">
+      <div class="guide-step-why">
+        <strong>Proč stávající zákazníci?</strong> Získání nového zákazníka stojí 5× více než udržení stávajícího. Zákazníci, kteří od vás dříve kupovali a přestali, jsou vaší nejlevnější příležitostí k rychlým výsledkům.
+      </div>
+      <div class="guide-how-title">Jak na reaktivaci — krok za krokem</div>
+      <ul class="guide-actions">
+        <li class="guide-action">
+          <div class="guide-action-num" style="background:var(--phase3)">1</div>
+          <span>Exportujte z CRM seznam zákazníků, kteří nekoupili za posledních 6–12 měsíců. Segmentujte je podle hodnoty a potenciálu.</span>
+        </li>
+        <li class="guide-action">
+          <div class="guide-action-num" style="background:var(--phase3)">2</div>
+          <span>Top 20 zákazníkům z tohoto seznamu zavolejte osobně — ne e-mail, ne newsletter. Telefonát s jedinou otázkou: „Jak se vám daří? Jak vám můžeme pomoci?"</span>
+        </li>
+        <li class="guide-action">
+          <div class="guide-action-num" style="background:var(--phase3)">3</div>
+          <span>Pro zbytek připravte segmentovanou e-mailovou kampaň se skutečnou hodnotou — case study, insight, tip. Ne reklama. Obsah, který řeší jejich problém.</span>
+        </li>
+        <li class="guide-action">
+          <div class="guide-action-num" style="background:var(--phase3)">4</div>
+          <span>Každý zákazník, který reaguje, jde okamžitě do obchodní pipeline a dostane pozornost do 24 hodin.</span>
+        </li>
+      </ul>
+      <div class="guide-output">
+        <div class="guide-output-lbl">Výstup tohoto kroku</div>
+        <div class="guide-output-text">Do 30 dnů: minimálně 5 nových schůzek s reaktivovanými zákazníky. Do 60 dnů: první obchodní výsledky z této aktivity měřitelné v CRM.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="guide-step" onclick="toggleGuideStep(this)">
+    <div class="guide-step-head">
+      <div class="guide-step-num" style="color:var(--phase3)">7</div>
+      <div>
+        <div class="guide-step-title">90denní review a příprava na rok 2027</div>
+        <div class="guide-step-subtitle">Vyhodnoťte, co funguje, a nastavte kurz na příštích 12 měsíců</div>
+      </div>
+      <div class="guide-step-toggle">▾</div>
+    </div>
+    <div class="guide-step-body">
+      <div class="guide-step-why">
+        <strong>Proč review?</strong> Protože transformace bez vyhodnocení je jen projekt. Review uzavírá první kapitolu a otevírá druhou — přechod od transformace k plánovanému, řízenému růstu.
+      </div>
+      <div class="guide-how-title">Struktura 90denního review</div>
+      <ul class="guide-actions">
+        <li class="guide-action">
+          <div class="guide-action-num" style="background:var(--phase3)">1</div>
+          <span><strong>Co jsme plánovali vs. co se stalo:</strong> Projděte každý krok 90denního plánu. Buďte upřímní — co fungovalo, co ne a proč.</span>
+        </li>
+        <li class="guide-action">
+          <div class="guide-action-num" style="background:var(--phase3)">2</div>
+          <span><strong>KPI srovnání:</strong> Kde stojí firma dnes vs. kde stála před 90 dny? Pokud KPI nejdou nahoru, hledejte příčinu — ne výmluvu.</span>
+        </li>
+        <li class="guide-action">
+          <div class="guide-action-num" style="background:var(--phase3)">3</div>
+          <span><strong>Co se naučila firma:</strong> Jaké 3 největší poznatky z těchto 90 dnů ovlivní příští rok? Zaznamenejte je písemně.</span>
+        </li>
+        <li class="guide-action">
+          <div class="guide-action-num" style="background:var(--phase3)">4</div>
+          <span><strong>Plán na rok 2027:</strong> Na základě dat z prvních 90 dnů definujte priority pro příštích 12 měsíců. Maximálně 3–5 priorit. Každá má vlastníka, termín a měřitelný výsledek.</span>
+        </li>
+      </ul>
+      <div class="guide-output">
+        <div class="guide-output-lbl">Výstup tohoto kroku</div>
+        <div class="guide-output-text">Dvoustránkové shrnutí 90denní transformace — co se změnilo, co se nenaučilo a co plánujeme dál. Sdílíme celému vedení i klíčovým členům týmu. Transparentnost buduje důvěru.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+let doneCount = 0;
+const totalSteps = 15;
+
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  event.target.classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function toggleStep(el, phase) {
+  const cb = el.querySelector('.step-cb');
+  const txt = el.querySelector('.step-text');
+  const done = cb.classList.toggle('done');
+  txt.classList.toggle('done', done);
+  if (done) { cb.textContent = '✓'; doneCount++; }
+  else { cb.textContent = ''; doneCount--; }
+  updateProgress();
+}
+
+function updateProgress() {
+  const pct = (doneCount / totalSteps) * 100;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-count').textContent = doneCount + ' / ' + totalSteps;
+  if (doneCount === 5) toast('Fáze 1 dokončena! Přecházíte na nastavení systému. 🎯');
+  if (doneCount === 10) toast('Fáze 2 dokončena! Spouštíte výkon a růst. 🚀');
+  if (doneCount === 15) toast('90denní plán dokončen! Firma je jiná firmou. 🏆');
+}
+
+function togglePillar(key, el) {
+  const detail = document.getElementById('pd-' + key);
+  const allDetails = document.querySelectorAll('.pillar-detail');
+  const allPillars = document.querySelectorAll('.pillar');
+  const isOpen = detail.classList.contains('open');
+  allDetails.forEach(d => d.classList.remove('open'));
+  allPillars.forEach(p => p.classList.remove('open'));
+  if (!isOpen) {
+    detail.classList.add('open');
+    el.classList.add('open');
+    detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+function closePillar(key) {
+  document.getElementById('pd-' + key).classList.remove('open');
+  document.querySelectorAll('.pillar').forEach(p => p.classList.remove('open'));
+}
+
+function toggleGuideStep(el) {
+  el.classList.toggle('expanded');
+}
+
+function openGuide() {
+  document.getElementById('guide-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeGuide() {
+  document.getElementById('guide-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+// Close guide on Escape
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeGuide(); });
+</script>
+</body>
+</html>
