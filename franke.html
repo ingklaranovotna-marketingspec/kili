@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Franke × Kili — Strategická analýza</title>
+<style>
+:root {
+  --red: #C8102E;
+  --red2: #a50d26;
+  --red-glow: rgba(200,16,46,0.25);
+  --bg: #090909;
+  --bg2: #111;
+  --bg3: #181818;
+  --bg4: #202020;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --silver: #888;
+  --silver2: #bbb;
+  --white: #f0f0f0;
+  --gold: #D4A843;
+  --green: #27AE60;
+  --blue: #2980B9;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--white);overflow-x:hidden;cursor:none;}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--red);border-radius:2px;}
+
+/* ── CURSOR ── */
+#cur-dot{position:fixed;width:7px;height:7px;background:var(--red);border-radius:50%;pointer-events:none;z-index:10000;transform:translate(-50%,-50%);transition:transform .1s,width .2s,height .2s,background .2s;}
+#cur-ring{position:fixed;width:34px;height:34px;border:1.5px solid rgba(200,16,46,.45);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .25s,height .25s,border-color .25s,opacity .2s;}
+body.hovering #cur-dot{width:10px;height:10px;background:#fff;}
+body.hovering #cur-ring{width:50px;height:50px;border-color:rgba(200,16,46,.7);}
+body.clicking #cur-dot{transform:translate(-50%,-50%) scale(.7);}
+
+/* ── LOADER ── */
+#loader{position:fixed;inset:0;background:var(--bg);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .6s,visibility .6s;}
+#loader.out{opacity:0;visibility:hidden;}
+.ld-logo{font-size:2rem;font-weight:900;letter-spacing:.15em;text-transform:uppercase;overflow:hidden;}
+.ld-logo span{display:inline-block;opacity:0;transform:translateY(30px);transition:opacity .5s,transform .5s;}
+.ld-logo .sep{color:var(--red);margin:0 12px;}
+.ld-line{width:180px;height:2px;background:var(--bg4);border-radius:2px;overflow:hidden;}
+.ld-fill{height:100%;background:var(--red);width:0%;transition:width 1.4s cubic-bezier(.4,0,.2,1);}
+.ld-sub{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--silver);opacity:0;transition:opacity .5s .3s;}
+.ld-sub.show{opacity:1;}
+
+/* ── PROGRESS ── */
+#progress{position:fixed;top:0;left:0;height:2px;background:var(--red);z-index:8000;transition:width .08s;box-shadow:0 0 8px var(--red-glow);}
+
+/* ── SIDENAV ── */
+#sidenav{position:fixed;right:24px;top:50%;transform:translateY(-50%);z-index:500;display:flex;flex-direction:column;gap:10px;}
+.sn-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.18);cursor:pointer;transition:all .3s;position:relative;}
+.sn-dot.active{background:var(--red);transform:scale(1.3);}
+.sn-dot:hover{background:var(--red);transform:scale(1.2);}
+.sn-dot::before{content:attr(data-label);position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--white);white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:4px;}
+.sn-dot:hover::before,.sn-dot.active::before{opacity:1;}
+
+/* ── TOP NAV ── */
+#topnav{position:fixed;top:0;left:0;right:0;z-index:600;background:rgba(9,9,9,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 44px;}
+.tn-logo{font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;display:flex;align-items:center;gap:10px;}
+.tn-logo .pulse{width:7px;height:7px;background:var(--red);border-radius:50%;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(200,16,46,.6);}50%{box-shadow:0 0 0 6px rgba(200,16,46,0);}}
+.tn-links{display:flex;gap:2px;}
+.tn-links a{color:var(--silver);text-decoration:none;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:5px 11px;border-radius:5px;transition:all .2s;}
+.tn-links a:hover,.tn-links a.active{color:var(--white);}
+.tn-links a.active{color:var(--red);}
+
+/* ── SECTION BASE ── */
+section{min-height:100vh;padding:96px 64px 72px;display:flex;flex-direction:column;justify-content:center;position:relative;}
+.s-label{font-size:10px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--red);margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.s-label::after{content:'';display:block;width:32px;height:1px;background:var(--red);opacity:.5;}
+h2.s-title{font-size:clamp(1.8rem,3vw,2.6rem);font-weight:800;letter-spacing:-.02em;margin-bottom:40px;line-height:1.1;}
+
+/* ── REVEAL ANIMATIONS ── */
+.reveal{opacity:0;transform:translateY(32px);transition:opacity .65s cubic-bezier(.4,0,.2,1),transform .65s cubic-bezier(.4,0,.2,1);}
+.reveal.in{opacity:1;transform:translateY(0);}
+.reveal-left{opacity:0;transform:translateX(-32px);transition:opacity .65s cubic-bezier(.4,0,.2,1),transform .65s cubic-bezier(.4,0,.2,1);}
+.reveal-left.in{opacity:1;transform:translateX(0);}
+.reveal-right{opacity:0;transform:translateX(32px);transition:opacity .65s cubic-bezier(.4,0,.2,1),transform .65s cubic-bezier(.4,0,.2,1);}
+.reveal-right.in{opacity:1;transform:translateX(0);}
+.d1{transition-delay:.1s;}.d2{transition-delay:.2s;}.d3{transition-delay:.3s;}.d4{transition-delay:.4s;}.d5{transition-delay:.5s;}
+
+/* ── HERO ── */
+#hero{background:var(--bg);overflow:hidden;min-height:100vh;}
+.hero-noise{position:absolute;inset:0;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='512' height='512' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");background-size:200px;pointer-events:none;}
+.hero-glow{position:absolute;inset:0;background:radial-gradient(ellipse 55% 55% at 72% 50%,rgba(200,16,46,.13) 0%,transparent 60%),radial-gradient(ellipse 35% 50% at 15% 75%,rgba(200,16,46,.06) 0%,transparent 55%);pointer-events:none;}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:72px 72px;mask-image:radial-gradient(ellipse 90% 90% at 50% 50%,black 20%,transparent 100%);pointer-events:none;}
+.hero-content{position:relative;z-index:1;max-width:920px;}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(200,16,46,.1);border:1px solid rgba(200,16,46,.28);border-radius:100px;padding:5px 16px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--red);margin-bottom:36px;}
+.hero-lines{display:flex;flex-direction:column;gap:0;}
+.hero-line{overflow:hidden;display:flex;gap:.28em;}
+.hero-word{display:inline-block;opacity:0;transform:translateY(110%);font-size:clamp(2.8rem,5.5vw,5.2rem);font-weight:900;line-height:1.06;letter-spacing:-.03em;}
+.hero-word.red{color:var(--red);}
+.hero-word.show{opacity:1;transform:translateY(0);transition:opacity .7s cubic-bezier(.4,0,.2,1),transform .7s cubic-bezier(.4,0,.2,1);}
+.hero-sub{margin-top:28px;max-width:540px;font-size:clamp(.95rem,1.3vw,1.15rem);color:var(--silver2);line-height:1.7;opacity:0;transform:translateY(16px);transition:opacity .6s .6s,transform .6s .6s;}
+.hero-sub.show{opacity:1;transform:translateY(0);}
+.hero-stats{display:flex;gap:0;margin-top:48px;opacity:0;transform:translateY(16px);transition:opacity .6s .8s,transform .6s .8s;}
+.hero-stats.show{opacity:1;transform:translateY(0);}
+.h-stat{padding:0 36px 0 0;display:flex;flex-direction:column;gap:5px;position:relative;}
+.h-stat+.h-stat{padding-left:36px;border-left:1px solid var(--border2);}
+.h-stat .val{font-size:2.4rem;font-weight:900;letter-spacing:-.03em;color:var(--white);line-height:1;}
+.h-stat .val em{color:var(--red);font-style:normal;}
+.h-stat .lbl{font-size:11px;color:var(--silver);text-transform:uppercase;letter-spacing:.1em;}
+.hero-scroll{position:absolute;bottom:36px;left:64px;display:flex;align-items:center;gap:12px;color:var(--silver);font-size:11px;letter-spacing:.12em;text-transform:uppercase;animation:bounce 2s infinite;}
+@keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(6px);}}
+.hero-scroll svg{width:14px;height:14px;stroke:var(--silver);}
+
+/* ── SWOT ── */
+#swot{background:var(--bg2);}
+.swot-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px;border-radius:18px;overflow:hidden;margin-top:8px;}
+.swot-card{position:relative;height:240px;perspective:900px;cursor:pointer;}
+.swot-card-inner{width:100%;height:100%;transition:transform .65s cubic-bezier(.4,0,.2,1);transform-style:preserve-3d;position:relative;}
+.swot-card.flipped .swot-card-inner{transform:rotateY(180deg);}
+.swot-front,.swot-back{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;padding:28px 30px;display:flex;flex-direction:column;}
+.swot-back{opacity:0;transition:opacity 0s .325s;}
+.swot-card.flipped .swot-back{opacity:1;transition:opacity 0s .325s;}
+.swot-card.flipped .swot-front{opacity:0;transition:opacity 0s .325s;}
+.swot-back{transform:rotateY(180deg);}
+.swot-card[data-q="S"] .swot-front,.swot-card[data-q="S"] .swot-back{background:rgba(39,174,96,.07);}
+.swot-card[data-q="W"] .swot-front,.swot-card[data-q="W"] .swot-back{background:rgba(200,16,46,.07);}
+.swot-card[data-q="O"] .swot-front,.swot-card[data-q="O"] .swot-back{background:rgba(41,128,185,.07);}
+.swot-card[data-q="T"] .swot-front,.swot-card[data-q="T"] .swot-back{background:rgba(212,168,67,.07);}
+.swot-letter{font-size:3.5rem;font-weight:900;opacity:.14;position:absolute;top:12px;right:20px;line-height:1;letter-spacing:-.04em;}
+.swot-card[data-q="S"] .swot-letter{color:var(--green);}
+.swot-card[data-q="W"] .swot-letter{color:var(--red);}
+.swot-card[data-q="O"] .swot-letter{color:var(--blue);}
+.swot-card[data-q="T"] .swot-letter{color:var(--gold);}
+.swot-qtitle{font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;margin-bottom:14px;}
+.swot-card[data-q="S"] .swot-qtitle{color:var(--green);}
+.swot-card[data-q="W"] .swot-qtitle{color:var(--red);}
+.swot-card[data-q="O"] .swot-qtitle{color:var(--blue);}
+.swot-card[data-q="T"] .swot-qtitle{color:var(--gold);}
+.swot-list{list-style:none;display:flex;flex-direction:column;gap:7px;position:relative;z-index:1;flex:1;overflow:hidden;}
+.swot-list li{font-size:12.5px;color:var(--silver2);display:flex;align-items:flex-start;gap:8px;line-height:1.4;}
+.swot-list li::before{content:'';width:4px;height:4px;border-radius:50%;background:currentColor;flex-shrink:0;margin-top:5px;opacity:.5;}
+.swot-card[data-q="S"] .swot-list li::before{color:var(--green);}
+.swot-card[data-q="W"] .swot-list li::before{color:var(--red);}
+.swot-card[data-q="O"] .swot-list li::before{color:var(--blue);}
+.swot-card[data-q="T"] .swot-list li::before{color:var(--gold);}
+.swot-hint{font-size:10px;color:var(--silver);letter-spacing:.08em;text-transform:uppercase;margin-top:auto;padding-top:10px;display:flex;align-items:center;gap:5px;opacity:.6;}
+.swot-hint svg{width:10px;height:10px;stroke:currentColor;}
+.swot-back-insight{font-size:13px;color:var(--silver2);line-height:1.65;flex:1;}
+.swot-back-insight strong{color:var(--white);display:block;margin-bottom:8px;font-size:14px;}
+.swot-back-close{margin-top:auto;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--silver);opacity:.5;}
+
+/* ── COMPETITIVE MAP ── */
+#trh{background:var(--bg);}
+.map-wrap{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--border);background:var(--bg2);}
+canvas#bubbleMap{display:block;width:100%;height:440px;}
+.map-toggle{display:flex;gap:8px;margin-bottom:20px;align-items:center;}
+.map-toggle button{padding:7px 18px;font-size:12px;font-weight:600;letter-spacing:.06em;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--silver);cursor:pointer;transition:all .25s;}
+.map-toggle button.active{background:var(--red);color:#fff;border-color:var(--red);}
+.map-legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:14px;}
+.leg-item{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--silver);}
+.leg-dot{width:10px;height:10px;border-radius:50%;}
+
+/* ── POSITIONING (RADAR) ── */
+#positioning{background:var(--bg2);}
+.radar-wrap{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;}
+.radar-canvas-wrap{position:relative;border-radius:16px;overflow:hidden;background:var(--bg3);border:1px solid var(--border);}
+canvas#radarChart{display:block;width:100%;height:400px;}
+.radar-toggle{display:flex;gap:6px;margin-bottom:20px;}
+.radar-toggle button{padding:7px 18px;font-size:12px;font-weight:600;letter-spacing:.06em;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--silver);cursor:pointer;transition:all .25s;}
+.radar-toggle button.active{background:var(--red);color:#fff;border-color:var(--red);}
+.radar-claims{display:flex;flex-direction:column;gap:14px;}
+.claim-card{padding:18px 22px;border-radius:10px;background:var(--bg3);border:1px solid var(--border);border-left:3px solid transparent;transition:all .3s;}
+.claim-card.now{border-left-color:rgba(200,16,46,.4);}
+.claim-card.goal{border-left-color:var(--red);}
+.claim-card:hover{transform:translateX(5px);border-left-color:var(--red);}
+.claim-card .ctag{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;margin-bottom:7px;}
+.claim-card.now .ctag{color:var(--silver);}
+.claim-card.goal .ctag{color:var(--red);}
+.claim-card h3{font-size:1.15rem;font-weight:700;margin-bottom:6px;color:var(--white);}
+.claim-card p{font-size:13px;color:var(--silver2);line-height:1.55;}
+.big-quote{margin-top:20px;padding:24px 28px;background:linear-gradient(135deg,rgba(200,16,46,.1),rgba(200,16,46,.04));border:1px solid rgba(200,16,46,.22);border-radius:12px;font-size:1.2rem;font-weight:700;font-style:italic;line-height:1.4;color:var(--white);}
+.big-quote span{color:var(--red);}
+
+/* ── STRATEGY ── */
+#strategie{background:var(--bg);}
+.pillars{display:flex;flex-direction:column;gap:3px;}
+.pillar{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .3s;}
+.pillar:hover,.pillar.open{border-color:rgba(200,16,46,.35);}
+.pillar-head{display:flex;align-items:center;gap:20px;padding:22px 28px;user-select:none;}
+.pillar-n{font-size:1.6rem;font-weight:900;color:var(--red);opacity:.35;width:40px;flex-shrink:0;line-height:1;}
+.pillar-icon2{font-size:1.5rem;width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:rgba(200,16,46,.08);border-radius:10px;flex-shrink:0;}
+.pillar-meta{flex:1;}
+.pillar-meta h3{font-size:15px;font-weight:700;color:var(--white);margin-bottom:3px;}
+.pillar-meta p{font-size:12.5px;color:var(--silver);}
+.pillar-chevron{width:20px;height:20px;stroke:var(--silver);transition:transform .35s;flex-shrink:0;}
+.pillar.open .pillar-chevron{transform:rotate(180deg);}
+.pillar-body{max-height:0;overflow:hidden;transition:max-height .45s cubic-bezier(.4,0,.2,1);}
+.pillar.open .pillar-body{max-height:200px;}
+.pillar-body-inner{padding:0 28px 22px 108px;display:flex;flex-direction:column;gap:7px;}
+.pillar-tactic{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--silver2);}
+.pillar-tactic::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--red);flex-shrink:0;opacity:.6;}
+
+/* ── GUERILLA ── */
+#guerilla{background:var(--bg2);}
+.g-bigidea{display:flex;align-items:center;gap:20px;padding:24px 28px;background:var(--bg3);border:1px solid rgba(200,16,46,.25);border-radius:12px;margin-bottom:28px;}
+.g-bigidea-badge{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;background:rgba(200,16,46,.12);color:var(--red);padding:5px 11px;border-radius:5px;flex-shrink:0;}
+.g-bigidea-text{font-size:1.25rem;font-weight:700;font-style:italic;color:var(--white);}
+.g-tabs{display:flex;gap:4px;background:var(--bg3);padding:4px;border-radius:10px;width:fit-content;margin-bottom:24px;}
+.g-tab{padding:7px 22px;font-size:12px;font-weight:600;letter-spacing:.05em;border-radius:7px;border:none;background:transparent;color:var(--silver);cursor:pointer;transition:all .22s;}
+.g-tab.active{background:var(--red);color:#fff;}
+.g-panel{display:none;grid-template-columns:repeat(3,1fr);gap:14px;}
+.g-panel.active{display:grid;}
+.g-card2{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:22px;transition:all .3s;position:relative;overflow:hidden;}
+.g-card2::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(200,16,46,.06),transparent);opacity:0;transition:opacity .3s;}
+.g-card2:hover{border-color:rgba(200,16,46,.3);transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,.3);}
+.g-card2:hover::after{opacity:1;}
+.g-card2-icon{font-size:1.5rem;margin-bottom:12px;}
+.g-card2 h3{font-size:14px;font-weight:700;color:var(--white);margin-bottom:8px;position:relative;z-index:1;}
+.g-card2 p{font-size:12.5px;color:var(--silver2);line-height:1.6;position:relative;z-index:1;}
+
+/* ── FUNNEL ── */
+#funnel{background:var(--bg);}
+.funnel-container{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;}
+.funnel-svg-wrap{position:relative;}
+.funnel-steps-list{display:flex;flex-direction:column;gap:16px;}
+.fs-item{padding:20px 24px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;transition:all .3s;cursor:default;}
+.fs-item:hover{border-color:rgba(200,16,46,.3);transform:translateX(6px);}
+.fs-num{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--silver);margin-bottom:4px;}
+.fs-item h3{font-size:15px;font-weight:700;color:var(--white);margin-bottom:5px;}
+.fs-item p{font-size:12.5px;color:var(--silver2);margin-bottom:10px;}
+.fs-bar{height:3px;border-radius:3px;background:var(--bg4);overflow:hidden;}
+.fs-bar-fill{height:100%;border-radius:3px;width:0%;transition:width 1s cubic-bezier(.4,0,.2,1);}
+.fs-item:nth-child(1) .fs-bar-fill{background:var(--red);}
+.fs-item:nth-child(2) .fs-bar-fill{background:var(--gold);}
+.fs-item:nth-child(3) .fs-bar-fill{background:var(--green);}
+
+/* ── KILI ── */
+#kili{background:var(--bg2);overflow:hidden;}
+.kili-bg{position:absolute;inset:0;background:radial-gradient(ellipse 50% 60% at 85% 50%,rgba(41,128,185,.07) 0%,transparent 55%);pointer-events:none;}
+.kili-grid{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center;position:relative;z-index:1;}
+.kili-flow-svg-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+svg#kiliFlow{display:block;width:100%;height:360px;}
+.kili-right{display:flex;flex-direction:column;gap:14px;}
+.k-point{padding:18px 22px;background:var(--bg3);border:1px solid var(--border);border-left:3px solid rgba(41,128,185,.4);border-radius:0 10px 10px 0;transition:all .3s;}
+.k-point:hover{border-left-color:var(--red);transform:translateX(5px);}
+.k-point h3{font-size:14px;font-weight:700;color:var(--white);margin-bottom:5px;}
+.k-point p{font-size:12.5px;color:var(--silver2);line-height:1.55;}
+.kili-quote-card{margin-top:6px;padding:20px 22px;background:rgba(41,128,185,.07);border:1px solid rgba(41,128,185,.18);border-radius:10px;}
+.kili-quote-card .kq-label{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--blue);margin-bottom:8px;}
+.kili-quote-card .kq-text{font-size:1.05rem;font-weight:700;font-style:italic;color:var(--white);}
+
+/* ── CONCLUSION ── */
+#zaver{background:var(--bg);}
+.conc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:36px;}
+.conc-card{padding:28px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;transition:all .35s;position:relative;overflow:hidden;}
+.conc-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--red);transform:scaleX(0);transform-origin:left;transition:transform .4s;}
+.conc-card:hover{transform:translateY(-5px);border-color:rgba(200,16,46,.25);box-shadow:0 20px 40px rgba(0,0,0,.35);}
+.conc-card:hover::before{transform:scaleX(1);}
+.conc-icon{font-size:1.8rem;margin-bottom:14px;}
+.conc-card h3{font-size:15px;font-weight:700;margin-bottom:8px;}
+.conc-card p{font-size:13px;color:var(--silver2);line-height:1.6;}
+.final-banner{background:linear-gradient(135deg,var(--red2),var(--red));border-radius:18px;padding:52px 56px;text-align:center;position:relative;overflow:hidden;}
+.final-banner::before{content:'';position:absolute;inset:0;opacity:.04;background-image:repeating-linear-gradient(45deg,#fff 0,#fff 1px,transparent 0,transparent 50%);background-size:12px 12px;}
+.final-banner h2{font-size:clamp(1.6rem,3vw,2.3rem);font-weight:900;color:#fff;letter-spacing:-.02em;margin-bottom:12px;position:relative;z-index:1;}
+.final-banner p{font-size:14.5px;color:rgba(255,255,255,.78);max-width:580px;margin:0 auto;line-height:1.65;position:relative;z-index:1;}
+
+/* ── FOOTER ── */
+footer{padding:28px 64px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+footer p{font-size:12px;color:var(--silver);}
+footer .fb{font-size:13px;font-weight:800;letter-spacing:.1em;}
+footer .fb span{color:var(--red);}
+
+/* ── TOOLTIP ── */
+.tooltip-el{position:absolute;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--white);pointer-events:none;z-index:200;white-space:nowrap;opacity:0;transition:opacity .2s;max-width:180px;white-space:normal;line-height:1.5;}
+
+@media(max-width:900px){
+  section{padding:80px 20px 60px;}
+  #topnav{padding:0 20px;}
+  .tn-links{display:none;}
+  #sidenav{display:none;}
+  .swot-grid{grid-template-columns:1fr;}
+  .radar-wrap{grid-template-columns:1fr;}
+  .funnel-container{grid-template-columns:1fr;}
+  .kili-grid{grid-template-columns:1fr;}
+  .conc-grid{grid-template-columns:1fr;}
+  .g-panel.active{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div id="cur-dot"></div>
+<div id="cur-ring"></div>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="ld-logo">
+    <span id="ld-f">FRANKE</span>
+    <span class="sep" id="ld-x">×</span>
+    <span id="ld-k">KILI</span>
+  </div>
+  <div class="ld-line"><div class="ld-fill" id="ldFill"></div></div>
+  <div class="ld-sub" id="ldSub">Strategická analýza · Česká republika</div>
+</div>
+
+<!-- PROGRESS -->
+<div id="progress"></div>
+
+<!-- SIDE NAV -->
+<nav id="sidenav">
+  <div class="sn-dot" data-label="Úvod" data-sec="hero"></div>
+  <div class="sn-dot" data-label="SWOT" data-sec="swot"></div>
+  <div class="sn-dot" data-label="Trh" data-sec="trh"></div>
+  <div class="sn-dot" data-label="Positioning" data-sec="positioning"></div>
+  <div class="sn-dot" data-label="Strategie" data-sec="strategie"></div>
+  <div class="sn-dot" data-label="Kampaň" data-sec="guerilla"></div>
+  <div class="sn-dot" data-label="Funnel" data-sec="funnel"></div>
+  <div class="sn-dot" data-label="Kili" data-sec="kili"></div>
+  <div class="sn-dot" data-label="Závěr" data-sec="zaver"></div>
+</nav>
+
+<!-- TOP NAV -->
+<nav id="topnav">
+  <div class="tn-logo"><div class="pulse"></div>Franke <span style="color:var(--silver);font-weight:300;margin:0 6px">×</span> Kili</div>
+  <div class="tn-links">
+    <a href="#hero">Úvod</a>
+    <a href="#swot">SWOT</a>
+    <a href="#trh">Trh</a>
+    <a href="#positioning">Positioning</a>
+    <a href="#strategie">Strategie</a>
+    <a href="#guerilla">Kampaň</a>
+    <a href="#funnel">Funnel</a>
+    <a href="#kili">Kili</a>
+    <a href="#zaver">Závěr</a>
+  </div>
+</nav>
+
+<!-- ══════════════════ HERO ══════════════════ -->
+<section id="hero">
+  <div class="hero-noise"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-tag reveal">Strategická analýza · Česká republika · 2026</div>
+    <div class="hero-lines">
+      <div class="hero-line"><span class="hero-word" data-delay="0">Franke</span> <span class="hero-word" data-delay="80">má</span></div>
+      <div class="hero-line"><span class="hero-word red" data-delay="180">silný</span> <span class="hero-word red" data-delay="260">produkt.</span></div>
+      <div class="hero-line"><span class="hero-word" data-delay="380">Nevyužitý</span></div>
+      <div class="hero-line"><span class="hero-word red" data-delay="480">potenciál.</span></div>
+    </div>
+    <p class="hero-sub">Analýza pozice Franke na českém trhu a cesta od produktové firmy k dominantní lifestyle značce kuchyňského světa.</p>
+    <div class="hero-stats">
+      <div class="h-stat"><div class="val"><em class="count" data-target="30">0</em>+</div><div class="lbl">let na CZ trhu</div></div>
+      <div class="h-stat"><div class="val"><em class="count" data-target="40">0</em>+</div><div class="lbl">zemí světa</div></div>
+      <div class="h-stat"><div class="val"><em class="count" data-target="1911">0</em></div><div class="lbl">rok založení</div></div>
+      <div class="h-stat"><div class="val"><em class="count" data-target="3">0</em></div><div class="lbl">klíčové segmenty</div></div>
+    </div>
+  </div>
+  <div class="hero-scroll">
+    <svg fill="none" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+    Scrolluj dolů
+  </div>
+</section>
+
+<!-- ══════════════════ SWOT ══════════════════ -->
+<section id="swot">
+  <div class="s-label reveal">Analýza</div>
+  <h2 class="s-title reveal">SWOT analýza <span style="color:var(--red)">Franke</span></h2>
+  <p style="color:var(--silver);font-size:13px;margin-bottom:24px;margin-top:-28px;" class="reveal">Klikni na kartu pro hlubší pohled.</p>
+  <div class="swot-grid reveal d1">
+    <!-- S -->
+    <div class="swot-card" data-q="S">
+      <div class="swot-card-inner">
+        <div class="swot-front">
+          <div class="swot-letter">S</div>
+          <div class="swot-qtitle">Silné stránky</div>
+          <ul class="swot-list">
+            <li>Silná globální značka od roku 1911</li>
+            <li>Výjimečná kvalita a design produktů</li>
+            <li>Stabilní B2B vztahy s klíčovými distributory</li>
+            <li>Široké portfolio — dřezy, baterie, spotřebiče</li>
+          </ul>
+          <div class="swot-hint"><svg fill="none" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" d="M4 4h7M4 8h7m9-4l-7 7 7 7"/></svg>Klikni pro více</div>
+        </div>
+        <div class="swot-back">
+          <div class="swot-letter">S</div>
+          <div class="swot-qtitle">Co z toho plyne</div>
+          <p class="swot-back-insight"><strong>Základ je pevný.</strong> Franke má vše, co potřebuje k tomu, aby se stalo Top-of-mind značkou. Chybí komunikační vrstva, která by tyto hodnoty přenesla k zákazníkovi. Silná globální reputace dává lokální kampani věrohodnost, kterou konkurence nemá.</p>
+          <div class="swot-back-close">↩ klikni zpět</div>
+        </div>
+      </div>
+    </div>
+    <!-- W -->
+    <div class="swot-card" data-q="W">
+      <div class="swot-card-inner">
+        <div class="swot-front">
+          <div class="swot-letter">W</div>
+          <div class="swot-qtitle">Slabé stránky</div>
+          <ul class="swot-list">
+            <li>Slabá přímá komunikace ke koncovému zákazníkovi</li>
+            <li>Nízká emoční hodnota značky v ČR</li>
+            <li>Slabší UX — konfigurátory, digitální cesta</li>
+            <li>Závislost na distribuční síti</li>
+          </ul>
+          <div class="swot-hint"><svg fill="none" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" d="M4 4h7M4 8h7m9-4l-7 7 7 7"/></svg>Klikni pro více</div>
+        </div>
+        <div class="swot-back">
+          <div class="swot-letter">W</div>
+          <div class="swot-qtitle">Co z toho plyne</div>
+          <p class="swot-back-insight"><strong>Mezera je příležitost.</strong> Zákazník Franke zná, ale necítí. Posun z racionální ("kvalitní dřez") na emoční ("chci Franke") je přesně to, co odlišuje prémiové značky od produktových firem. Toto je hlavní prostor ke změně.</p>
+          <div class="swot-back-close">↩ klikni zpět</div>
+        </div>
+      </div>
+    </div>
+    <!-- O -->
+    <div class="swot-card" data-q="O">
+      <div class="swot-card-inner">
+        <div class="swot-front">
+          <div class="swot-letter">O</div>
+          <div class="swot-qtitle">Příležitosti</div>
+          <ul class="swot-list">
+            <li>Digitalizace — konfigurátory, AR vizualizace</li>
+            <li>Posun k lifestyle brandu v kuchyňském světě</li>
+            <li>Content marketing a expertní edukace</li>
+            <li>Rozvoj B2B ekosystému přes partnery</li>
+          </ul>
+          <div class="swot-hint"><svg fill="none" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" d="M4 4h7M4 8h7m9-4l-7 7 7 7"/></svg>Klikni pro více</div>
+        </div>
+        <div class="swot-back">
+          <div class="swot-letter">O</div>
+          <div class="swot-qtitle">Co z toho plyne</div>
+          <p class="swot-back-insight"><strong>Timing je správný.</strong> Renovační vlna po covidovém období a rostoucí zájem o interiéry vytvářejí ideální podmínky. Zákazníci hledají edukaci a jistotu — prostor, kde může Franke + Kili dominovat jako expertní hlas.</p>
+          <div class="swot-back-close">↩ klikni zpět</div>
+        </div>
+      </div>
+    </div>
+    <!-- T -->
+    <div class="swot-card" data-q="T">
+      <div class="swot-card-inner">
+        <div class="swot-front">
+          <div class="swot-letter">T</div>
+          <div class="swot-qtitle">Hrozby</div>
+          <ul class="swot-list">
+            <li>Silná konkurence — Blanco, IKEA, Bosch</li>
+            <li>Komoditizace segmentu kuchyňského vybavení</li>
+            <li>Změna nákupního chování — online, D2C</li>
+            <li>Tlak na cenu od levnějších alternativ</li>
+          </ul>
+          <div class="swot-hint"><svg fill="none" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" d="M4 4h7M4 8h7m9-4l-7 7 7 7"/></svg>Klikni pro více</div>
+        </div>
+        <div class="swot-back">
+          <div class="swot-letter">T</div>
+          <div class="swot-qtitle">Co z toho plyne</div>
+          <p class="swot-back-insight"><strong>Nečekat.</strong> Segment se rychle komoditizuje — kdo nebuduje brand teď, bude soutěžit pouze cenou. Repositioning na lifestyle a emoční hodnoty je účinná obrana proti komoditizaci. Franke musí jednat dříve, než to udělá Blanco.</p>
+          <div class="swot-back-close">↩ klikni zpět</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ COMPETITIVE MAP ══════════════════ -->
+<section id="trh">
+  <div class="s-label reveal">Konkurenční krajina</div>
+  <h2 class="s-title reveal">Kde stojí <span style="color:var(--red)">Franke</span> na trhu?</h2>
+  <div class="map-toggle reveal">
+    <button class="active" id="mapBtnNow" onclick="showMapState('now',this)">Současný stav</button>
+    <button id="mapBtnTarget" onclick="showMapState('target',this)">Cílový stav</button>
+    <span style="font-size:12px;color:var(--silver);margin-left:8px;">— animace přesunu Franke</span>
+  </div>
+  <div class="map-wrap reveal d1">
+    <canvas id="bubbleMap"></canvas>
+    <div class="tooltip-el" id="mapTooltip"></div>
+  </div>
+  <div class="map-legend reveal d2">
+    <div class="leg-item"><div class="leg-dot" style="background:#F0C040"></div>IKEA — silná lifestyle, nízká cena</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#888"></div>Bosch — spolehlivost, střední segment</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#7ec8e3"></div>Blanco — specialista na dřezy</div>
+    <div class="leg-item"><div class="leg-dot" style="background:rgba(200,16,46,.8)"></div>Franke — současná / cílová pozice</div>
+  </div>
+</section>
+
+<!-- ══════════════════ POSITIONING ══════════════════ -->
+<section id="positioning">
+  <div class="s-label reveal">Strategický posun</div>
+  <h2 class="s-title reveal">Nový <span style="color:var(--red)">positioning</span></h2>
+  <div class="radar-wrap">
+    <div class="reveal-left">
+      <div class="radar-toggle">
+        <button class="active" id="rBtnNow" onclick="switchRadar('now',this)">Nyní</button>
+        <button id="rBtnTarget" onclick="switchRadar('target',this)">Cíl</button>
+      </div>
+      <div class="radar-canvas-wrap">
+        <canvas id="radarChart"></canvas>
+      </div>
+    </div>
+    <div class="reveal-right d2">
+      <div class="radar-claims">
+        <div class="claim-card now">
+          <div class="ctag">Současné vnímání</div>
+          <h3>"Kvalitní, ale nejasný"</h3>
+          <p>Zákazník Franke pozná, ale netuší proč ji vybrat. Chybí emotivní odpověď na otázku: "Co mi Franke dá navíc?"</p>
+        </div>
+        <div class="claim-card goal">
+          <div class="ctag">Nový positioning</div>
+          <h3>"Mozek kuchyně"</h3>
+          <p>Franke je středobod každé funkční kuchyně — tam, kde design potkává každodenní realitu a kvalita se stává životním stylem.</p>
+        </div>
+        <div class="big-quote">"<span>Srdce každé kuchyně</span> začíná u dřezu."</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ STRATEGIE ══════════════════ -->
+<section id="strategie">
+  <div class="s-label reveal">Plán</div>
+  <h2 class="s-title reveal">5 pilířů <span style="color:var(--red)">transformace</span></h2>
+  <div class="pillars reveal d1">
+    <div class="pillar" onclick="togglePillar(this)">
+      <div class="pillar-head">
+        <div class="pillar-n">01</div>
+        <div class="pillar-icon2">🎯</div>
+        <div class="pillar-meta"><h3>Brand repositioning</h3><p>Od produktové k lifestyle značce s jasnou emocí</p></div>
+        <svg class="pillar-chevron" fill="none" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg>
+      </div>
+      <div class="pillar-body">
+        <div class="pillar-body-inner">
+          <div class="pillar-tactic">Definovat jasný brand voice a tón komunikace</div>
+          <div class="pillar-tactic">Vytvořit emoční brand story zaměřenou na každodenní život</div>
+          <div class="pillar-tactic">Vizuální identita reflektující prémiový lifestyle</div>
+          <div class="pillar-tactic">Positioning claim "Mozek kuchyně" jako zastřešující idea</div>
+        </div>
+      </div>
+    </div>
+    <div class="pillar" onclick="togglePillar(this)">
+      <div class="pillar-head">
+        <div class="pillar-n">02</div>
+        <div class="pillar-icon2">💻</div>
+        <div class="pillar-meta"><h3>Digitalizace</h3><p>AR konfigurátory, lepší UX, interaktivní průvodci</p></div>
+        <svg class="pillar-chevron" fill="none" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg>
+      </div>
+      <div class="pillar-body">
+        <div class="pillar-body-inner">
+          <div class="pillar-tactic">Interaktivní konfigurátor kuchyňského dřezu</div>
+          <div class="pillar-tactic">AR vizualizace produktu v zákazníkově kuchyni</div>
+          <div class="pillar-tactic">Přepracovaný web s důrazem na UX a edukaci</div>
+          <div class="pillar-tactic">Digitální katalog pro B2B partnery a architekty</div>
+        </div>
+      </div>
+    </div>
+    <div class="pillar" onclick="togglePillar(this)">
+      <div class="pillar-head">
+        <div class="pillar-n">03</div>
+        <div class="pillar-icon2">📣</div>
+        <div class="pillar-meta"><h3>D2C komunikace</h3><p>Přímý kontakt se zákazníkem, obejití distribuce</p></div>
+        <svg class="pillar-chevron" fill="none" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg>
+      </div>
+      <div class="pillar-body">
+        <div class="pillar-body-inner">
+          <div class="pillar-tactic">Instagram a Pinterest jako hlavní lifestyle kanály</div>
+          <div class="pillar-tactic">Spolupráce s interiérovými designéry a architekty</div>
+          <div class="pillar-tactic">Edukační video série na YouTube</div>
+          <div class="pillar-tactic">Newsletter pro zákazníky s inspirací a tipy</div>
+        </div>
+      </div>
+    </div>
+    <div class="pillar" onclick="togglePillar(this)">
+      <div class="pillar-head">
+        <div class="pillar-n">04</div>
+        <div class="pillar-icon2">🤝</div>
+        <div class="pillar-meta"><h3>B2B ekosystém</h3><p>Architekti, designéři a kuchyňská studia jako prescriptoři</p></div>
+        <svg class="pillar-chevron" fill="none" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg>
+      </div>
+      <div class="pillar-body">
+        <div class="pillar-body-inner">
+          <div class="pillar-tactic">Franke Partner Program — exkluzivní výhody pro prescriptory</div>
+          <div class="pillar-tactic">Showroom eventy a produktová školení</div>
+          <div class="pillar-tactic">Digitální knihovna materiálů pro architekty</div>
+          <div class="pillar-tactic">Certifikační program pro kuchyňská studia</div>
+        </div>
+      </div>
+    </div>
+    <div class="pillar" onclick="togglePillar(this)">
+      <div class="pillar-head">
+        <div class="pillar-n">05</div>
+        <div class="pillar-icon2">📚</div>
+        <div class="pillar-meta"><h3>Content marketing</h3><p>Franke jako expertní hlas kuchyňského světa</p></div>
+        <svg class="pillar-chevron" fill="none" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg>
+      </div>
+      <div class="pillar-body">
+        <div class="pillar-body-inner">
+          <div class="pillar-tactic">Blog s odbornými tipy na kuchyňské vybavení</div>
+          <div class="pillar-tactic">Série "Jak vybrat správný dřez" — edukační obsah</div>
+          <div class="pillar-tactic">Inspirační galerie realizovaných kuchyní</div>
+          <div class="pillar-tactic">Spolupráce s kuchyňskými studii na case studies</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ GUERILLA ══════════════════ -->
+<section id="guerilla">
+  <div class="s-label reveal">Kampaň</div>
+  <h2 class="s-title reveal">Guerilla <span style="color:var(--red)">strategie</span></h2>
+  <div class="g-bigidea reveal d1">
+    <div class="g-bigidea-badge">Big Idea</div>
+    <div class="g-bigidea-text" id="bigIdeaText"></div>
+  </div>
+  <div class="g-tabs reveal d2">
+    <button class="g-tab active" onclick="switchGTab('franke',this)">Franke</button>
+    <button class="g-tab" onclick="switchGTab('kili',this)">Kili</button>
+  </div>
+  <div class="g-panel active reveal d3" id="gpanel-franke">
+    <div class="g-card2"><div class="g-card2-icon">🚶</div><h3>Offline — veřejný prostor</h3><p>Footprinty na chodníku vedoucí do showroomů. Instalace funkčního dřezu na veřejném místě s provokativní otázkou. Guerilla samolepky na nečekaných místech.</p></div>
+    <div class="g-card2"><div class="g-card2-icon">📱</div><h3>Digital — autentická videa</h3><p>Krátká videa zaměřená na reálné každodenní používání kuchyně. Edukační série od expertů. Shock content — špatná rozhodnutí v kuchyni. Žádné virální výzvy — důvěryhodný tón.</p></div>
+    <div class="g-card2"><div class="g-card2-icon">🏆</div><h3>Expertní doporučení</h3><p>Recenze a hodnocení od architektů, kuchyňských designérů a truhlářů. Česká mentalita věří autoritám a ověřeným zdrojům — ne davovému nadšení.</p></div>
+  </div>
+  <div class="g-panel" id="gpanel-kili">
+    <div class="g-card2"><div class="g-card2-icon">🧪</div><h3>In-store testovací zóna</h3><p>Funkční dřez Franke přímo v prodejně Kili. Zákazník si může produkt vyzkoušet. Srovnávací instalace produktů pro přímé porovnání kvality.</p></div>
+    <div class="g-card2"><div class="g-card2-icon">📦</div><h3>Packaging moment</h3><p>Edukační letáky a materiály v zásilkách. Stickery pro truhláře a zákazníky jako brand touch-point mimo prodejnu. Přidaná hodnota ke každé objednávce.</p></div>
+    <div class="g-card2"><div class="g-card2-icon">🏗️</div><h3>B2B edukační balíčky</h3><p>Edukační sady pro obchodní partnery a truhláře. Kili jako nejlepší platforma pro přenos produktového know-how Franke přesně tam, kde zákazník rozhoduje.</p></div>
+  </div>
+</section>
+
+<!-- ══════════════════ FUNNEL ══════════════════ -->
+<section id="funnel">
+  <div class="s-label reveal">Performance</div>
+  <h2 class="s-title reveal">Zákaznická <span style="color:var(--red)">cesta</span></h2>
+  <div class="funnel-container">
+    <div class="reveal-left">
+      <svg id="funnelSvg" viewBox="0 0 320 380" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:340px;">
+        <defs>
+          <linearGradient id="fg1" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#C8102E" stop-opacity="0.9"/>
+            <stop offset="100%" stop-color="#C8102E" stop-opacity="0.5"/>
+          </linearGradient>
+          <linearGradient id="fg2" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#D4A843" stop-opacity="0.9"/>
+            <stop offset="100%" stop-color="#D4A843" stop-opacity="0.5"/>
+          </linearGradient>
+          <linearGradient id="fg3" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#27AE60" stop-opacity="0.9"/>
+            <stop offset="100%" stop-color="#27AE60" stop-opacity="0.5"/>
+          </linearGradient>
+        </defs>
+        <!-- Stage 1 -->
+        <polygon id="fStage1" points="20,0 300,0 260,110 60,110" fill="url(#fg1)" opacity="0" style="transition:opacity .6s"/>
+        <text x="160" y="52" text-anchor="middle" fill="white" font-size="13" font-weight="700" font-family="system-ui">AWARENESS</text>
+        <text x="160" y="72" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="11" font-family="system-ui">100%</text>
+        <!-- Stage 2 -->
+        <polygon id="fStage2" points="60,118 260,118 230,228 90,228" fill="url(#fg2)" opacity="0" style="transition:opacity .6s .3s"/>
+        <text x="160" y="168" text-anchor="middle" fill="white" font-size="13" font-weight="700" font-family="system-ui">CONSIDERATION</text>
+        <text x="160" y="188" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="11" font-family="system-ui">38%</text>
+        <!-- Stage 3 -->
+        <polygon id="fStage3" points="90,236 230,236 205,340 115,340" fill="url(#fg3)" opacity="0" style="transition:opacity .6s .6s"/>
+        <text x="160" y="284" text-anchor="middle" fill="white" font-size="13" font-weight="700" font-family="system-ui">CONVERSION</text>
+        <text x="160" y="304" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="11" font-family="system-ui">12%</text>
+      </svg>
+    </div>
+    <div class="funnel-steps-list reveal-right d1">
+      <div class="fs-item">
+        <div class="fs-num">Fáze 01</div>
+        <h3>Awareness</h3>
+        <p>Guerilla kampaň, outdoor aktivace, autentická videa, expertní doporučení, sociální média</p>
+        <div class="fs-bar"><div class="fs-bar-fill" data-w="100"></div></div>
+      </div>
+      <div class="fs-item">
+        <div class="fs-num">Fáze 02</div>
+        <h3>Consideration</h3>
+        <p>Landing page, konfigurátor, edukační obsah, showroom, Kili testovací zóna</p>
+        <div class="fs-bar"><div class="fs-bar-fill" data-w="65"></div></div>
+      </div>
+      <div class="fs-item">
+        <div class="fs-num">Fáze 03</div>
+        <h3>Conversion</h3>
+        <p>Lead generation, kuchyňský audit, partnerská doporučení přes Kili, B2B prescriptoři</p>
+        <div class="fs-bar"><div class="fs-bar-fill" data-w="38"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ KILI ══════════════════ -->
+<section id="kili">
+  <div class="kili-bg"></div>
+  <div class="s-label reveal">Partnerství</div>
+  <h2 class="s-title reveal">Role <span style="color:var(--red)">Kili</span> v ekosystému Franke</h2>
+  <div class="kili-grid">
+    <div class="kili-flow-svg-wrap reveal-left">
+      <svg id="kiliFlow" viewBox="0 0 400 360" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="rgba(200,16,46,0.6)"/>
+          </marker>
+        </defs>
+        <!-- FRANKE node -->
+        <rect x="120" y="30" width="160" height="64" rx="12" fill="rgba(200,16,46,0.12)" stroke="rgba(200,16,46,0.4)" stroke-width="1.5"/>
+        <text x="200" y="56" text-anchor="middle" fill="#f0f0f0" font-size="14" font-weight="700" font-family="system-ui">FRANKE</text>
+        <text x="200" y="75" text-anchor="middle" fill="#888" font-size="11" font-family="system-ui">Produkt · Know-how · Kvalita</text>
+        <!-- Arrow 1 -->
+        <line x1="200" y1="95" x2="200" y2="143" stroke="rgba(200,16,46,0.5)" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrowhead)"/>
+        <circle class="flow-dot" cx="200" cy="95" r="3" fill="var(--red)" opacity="0.8"/>
+        <!-- KILI node -->
+        <rect x="100" y="148" width="200" height="64" rx="12" fill="rgba(41,128,185,0.1)" stroke="rgba(41,128,185,0.4)" stroke-width="1.5"/>
+        <text x="200" y="174" text-anchor="middle" fill="#f0f0f0" font-size="14" font-weight="700" font-family="system-ui">KILI</text>
+        <text x="200" y="193" text-anchor="middle" fill="#888" font-size="11" font-family="system-ui">Edukace · Distribuce · Zkušenost</text>
+        <!-- Arrow 2 -->
+        <line x1="200" y1="213" x2="200" y2="261" stroke="rgba(41,128,185,0.5)" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrowhead)"/>
+        <circle class="flow-dot-2" cx="200" cy="213" r="3" fill="var(--blue)" opacity="0.8"/>
+        <!-- ZÁKAZNÍK node -->
+        <rect x="110" y="266" width="180" height="64" rx="12" fill="rgba(39,174,96,0.1)" stroke="rgba(39,174,96,0.4)" stroke-width="1.5"/>
+        <text x="200" y="292" text-anchor="middle" fill="#f0f0f0" font-size="14" font-weight="700" font-family="system-ui">ZÁKAZNÍK</text>
+        <text x="200" y="311" text-anchor="middle" fill="#888" font-size="11" font-family="system-ui">Pochopení · Volba · Loajalita</text>
+        <!-- Feedback loop -->
+        <path d="M 90 298 Q 40 298 40 200 Q 40 94 119 62" stroke="rgba(255,255,255,0.08)" stroke-width="1.5" fill="none" stroke-dasharray="4,4"/>
+        <text x="22" y="205" text-anchor="middle" fill="rgba(255,255,255,0.2)" font-size="9" font-family="system-ui" transform="rotate(-90,22,205)">feedback loop</text>
+      </svg>
+    </div>
+    <div class="kili-right reveal-right d1">
+      <div class="k-point"><h3>Edukátor zákazníka</h3><p>Kili překládá technické know-how Franke do srozumitelného jazyka. Zákazník pochopí, proč prémiová kvalita stojí za investici — bez pocitu prodejního tlaku.</p></div>
+      <div class="k-point"><h3>In-store zkušenost</h3><p>Testovací zóny s funkčními produkty Franke. Zákazník si vyzkouší produkt před koupí — největší výhoda oproti čistě online kanálům.</p></div>
+      <div class="k-point"><h3>B2B mostek k truhlářům</h3><p>Propojení Franke s truhláři, designéry a kuchyňskými studii. Kili funguje jako hub pro produktová doporučení a edukaci klíčových prescriptorů.</p></div>
+      <div class="k-point"><h3>Zpětná vazba pro Franke</h3><p>Kili sbírá přímé zákaznické reakce, které Franke chybí díky distribuční závislosti. Cenné insighty pro produktový a komunikační vývoj.</p></div>
+      <div class="kili-quote-card">
+        <div class="kq-label">Positioning Kili</div>
+        <div class="kq-text">"Nejsme prodejce. Jsme místo, kde to pochopíš."</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ ZÁVĚR ══════════════════ -->
+<section id="zaver">
+  <div class="s-label reveal">Výsledek</div>
+  <h2 class="s-title reveal">Klíčové <span style="color:var(--red)">závěry</span></h2>
+  <div class="conc-grid">
+    <div class="conc-card reveal d1"><div class="conc-icon">💎</div><h3>Silný základ existuje</h3><p>Franke má výjimečný produkt, globální reputaci a 30 let na českém trhu. To je nepopiratelná výhoda, kterou konkurence nemá.</p></div>
+    <div class="conc-card reveal d2"><div class="conc-icon">⚡</div><h3>Nevyužitý potenciál</h3><p>Marketingová komunikace neodráží kvalitu produktu. Zde leží největší příležitost k růstu bez nutnosti měnit produkt samotný.</p></div>
+    <div class="conc-card reveal d3"><div class="conc-icon">🎯</div><h3>Jasná cesta vpřed</h3><p>Repositioning + digitalizace + D2C komunikace = transformace vnímání značky u zákazníků i klíčových prescriptorů.</p></div>
+  </div>
+  <div class="final-banner reveal d2">
+    <h2>"Chytrá kuchyně začíná u dřezu"</h2>
+    <p>Spojení Franke (produkt) a Kili (zákazník + distribuce) vytváří unikátní ekosystém, který žádná konkurence nemá — ani Blanco, ani IKEA, ani Bosch. Tohle je nepřekonatelná výhoda, pokud ji využijeme teď.</p>
+  </div>
+</section>
+
+<footer>
+  <p>Strategická analýza pro vedení Franke · Česká republika · 2026</p>
+  <div class="fb">FRANKE <span>×</span> KILI</div>
+</footer>
+
+<script>
+// ── CURSOR ──
+const curDot = document.getElementById('cur-dot');
+const curRing = document.getElementById('cur-ring');
+let mx = 0, my = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+document.addEventListener('mousedown', () => document.body.classList.add('clicking'));
+document.addEventListener('mouseup', () => document.body.classList.remove('clicking'));
+function animCursor() {
+  curDot.style.left = mx + 'px';
+  curDot.style.top = my + 'px';
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  curRing.style.left = rx + 'px';
+  curRing.style.top = ry + 'px';
+  requestAnimationFrame(animCursor);
+}
+animCursor();
+document.querySelectorAll('a,button,.swot-card,.pillar,.g-card2,.conc-card,.k-point,.claim-card,.fs-item,.sn-dot')
+  .forEach(el => {
+    el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+    el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+  });
+
+// ── LOADER ──
+window.addEventListener('load', () => {
+  const ldF = document.getElementById('ld-f');
+  const ldX = document.getElementById('ld-x');
+  const ldK = document.getElementById('ld-k');
+  const ldSub = document.getElementById('ldSub');
+  const ldFill = document.getElementById('ldFill');
+  setTimeout(() => { ldF.style.opacity=1; ldF.style.transform='translateY(0)'; ldF.style.transition='all .5s'; }, 100);
+  setTimeout(() => { ldX.style.opacity=1; ldX.style.transform='translateY(0)'; ldX.style.transition='all .5s'; }, 250);
+  setTimeout(() => { ldK.style.opacity=1; ldK.style.transform='translateY(0)'; ldK.style.transition='all .5s'; }, 400);
+  setTimeout(() => { ldSub.classList.add('show'); ldFill.style.width = '100%'; }, 500);
+  setTimeout(() => {
+    document.getElementById('loader').classList.add('out');
+    triggerHero();
+  }, 1800);
+});
+
+// ── HERO ANIMATION ──
+function triggerHero() {
+  document.querySelectorAll('.hero-word').forEach(w => {
+    const delay = parseInt(w.dataset.delay || 0);
+    setTimeout(() => w.classList.add('show'), delay);
+  });
+  setTimeout(() => document.querySelector('.hero-sub').classList.add('show'), 800);
+  setTimeout(() => {
+    document.querySelector('.hero-stats').classList.add('show');
+    document.querySelectorAll('.count').forEach(c => animCounter(c, parseInt(c.dataset.target)));
+  }, 1000);
+}
+
+function animCounter(el, target) {
+  const dur = target > 100 ? 2000 : 1200;
+  let start = null;
+  function step(ts) {
+    if (!start) start = ts;
+    const p = Math.min((ts - start) / dur, 1);
+    const eased = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(eased * target);
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+// ── PROGRESS BAR ──
+window.addEventListener('scroll', () => {
+  const s = window.scrollY;
+  const m = document.body.scrollHeight - window.innerHeight;
+  document.getElementById('progress').style.width = (s / m * 100) + '%';
+});
+
+// ── REVEAL ON SCROLL ──
+const revObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); revObs.unobserve(e.target); } });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.reveal,.reveal-left,.reveal-right').forEach(el => revObs.observe(el));
+
+// ── SIDE NAV ──
+const secIds = ['hero','swot','trh','positioning','strategie','guerilla','funnel','kili','zaver'];
+const snDots = document.querySelectorAll('.sn-dot');
+const tnLinks = document.querySelectorAll('.tn-links a');
+snDots.forEach(d => d.addEventListener('click', () => document.getElementById(d.dataset.sec).scrollIntoView({behavior:'smooth'})));
+const secObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = e.target.id;
+      snDots.forEach(d => d.classList.toggle('active', d.dataset.sec === id));
+      tnLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
+    }
+  });
+}, { threshold: 0.4 });
+document.querySelectorAll('section[id]').forEach(s => secObs.observe(s));
+
+// ── SWOT FLIP ──
+document.querySelectorAll('.swot-card').forEach(card => {
+  card.addEventListener('click', () => card.classList.toggle('flipped'));
+});
+
+// ── PILLAR EXPAND ──
+function togglePillar(el) {
+  const wasOpen = el.classList.contains('open');
+  document.querySelectorAll('.pillar').forEach(p => p.classList.remove('open'));
+  if (!wasOpen) el.classList.add('open');
+}
+
+// ── GUERILLA TABS ──
+function switchGTab(name, btn) {
+  document.querySelectorAll('.g-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.g-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('gpanel-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── BIG IDEA TYPING ──
+const bigIdeaEl = document.getElementById('bigIdeaText');
+const bigIdeaStr = '"Kolik času trávíš u dřezu?"';
+let biDone = false;
+const biObs = new IntersectionObserver(entries => {
+  if (entries[0].isIntersecting && !biDone) {
+    biDone = true;
+    let i = 0;
+    const interval = setInterval(() => {
+      bigIdeaEl.textContent = bigIdeaStr.slice(0, ++i);
+      if (i >= bigIdeaStr.length) clearInterval(interval);
+    }, 45);
+  }
+});
+biObs.observe(bigIdeaEl);
+
+// ── FUNNEL ANIMATION ──
+const funnelObs = new IntersectionObserver(entries => {
+  if (entries[0].isIntersecting) {
+    document.getElementById('fStage1').style.opacity = '1';
+    document.getElementById('fStage2').style.opacity = '1';
+    document.getElementById('fStage3').style.opacity = '1';
+    document.querySelectorAll('.fs-bar-fill').forEach(b => {
+      b.style.width = b.dataset.w + '%';
+    });
+    funnelObs.disconnect();
+  }
+}, { threshold: 0.3 });
+funnelObs.observe(document.getElementById('funnel'));
+
+// ── COMPETITIVE BUBBLE MAP (CANVAS) ──
+const bubbleCanvas = document.getElementById('bubbleMap');
+const brands = [
+  { name: 'IKEA', desc: 'Silná lifestyle značka, nízká cena', px: 0.14, py: 0.72, r: 62, color: '#F0C040', textColor: '#000' },
+  { name: 'Bosch', desc: 'Spolehlivost, střední segment', px: 0.48, py: 0.44, r: 52, color: '#aaa', textColor: '#000' },
+  { name: 'Blanco', desc: 'Specialista na dřezy, prémiová cena', px: 0.70, py: 0.33, r: 34, color: '#7ec8e3', textColor: '#000' },
+  { name: 'Franke', desc: 'Prémiová kvalita, nevyjasněný positioning', px: 0.82, py: 0.24, r: 44, color: 'rgba(200,16,46,0.85)', textColor: '#fff', isFranke: true },
+];
+const frankeTargetPY = 0.74;
+let mapState = 'now'; // 'now' | 'target'
+let mapAnim = 0; // 0=now, 1=target
+let mapAnimTarget = 0;
+let mapAnimFrame = null;
+let mapTooltipVisible = false;
+
+function dpr() { return window.devicePixelRatio || 1; }
+
+function setupCanvas(canvas) {
+  const w = canvas.parentElement.clientWidth;
+  const h = parseInt(canvas.style.height) || 440;
+  canvas.width = w * dpr();
+  canvas.height = h * dpr();
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr(), dpr());
+  return { w, h, ctx };
+}
+
+function drawBubbleMap(progress) {
+  const { w, h, ctx } = setupCanvas(bubbleCanvas);
+  ctx.clearRect(0, 0, w, h);
+  const pad = { l: 64, r: 32, t: 32, b: 52 };
+  const cw = w - pad.l - pad.r;
+  const ch = h - pad.t - pad.b;
+
+  // Grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    ctx.beginPath();
+    ctx.moveTo(pad.l + cw * i / 4, pad.t);
+    ctx.lineTo(pad.l + cw * i / 4, pad.t + ch);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(pad.l, pad.t + ch * i / 4);
+    ctx.lineTo(pad.l + cw, pad.t + ch * i / 4);
+    ctx.stroke();
+  }
+
+  // Axis labels
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.font = `11px system-ui`;
+  ctx.textAlign = 'center';
+  ctx.fillText('Cena produktu', pad.l + cw / 2, h - 10);
+  ctx.save();
+  ctx.translate(14, pad.t + ch / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText('Emoční hodnota značky', 0, 0);
+  ctx.restore();
+
+  // Axis ticks
+  ctx.fillStyle = 'rgba(255,255,255,0.2)';
+  ctx.font = '10px system-ui';
+  ctx.textAlign = 'left';
+  ctx.fillText('Nízká', pad.l + 4, pad.t + ch - 4);
+  ctx.textAlign = 'right';
+  ctx.fillText('Vysoká', pad.l + cw - 2, pad.t + ch - 4);
+  ctx.textAlign = 'center';
+  ctx.fillText('Nízká', pad.l + 6, pad.t + ch - 18);
+  ctx.fillText('Vysoká', pad.l + 10, pad.t + 16);
+
+  // Desired zone indicator
+  if (progress > 0) {
+    const zx = pad.l + 0.68 * cw;
+    const zy = pad.t + (1 - 0.62) * ch;
+    ctx.save();
+    ctx.globalAlpha = 0.06 * progress;
+    ctx.beginPath();
+    ctx.arc(pad.l + 0.82 * cw, pad.t + (1 - frankeTargetPY) * ch, 80, 0, Math.PI * 2);
+    ctx.fillStyle = '#C8102E';
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // Bubbles
+  brands.forEach(b => {
+    let bpx = b.px;
+    let bpy = b.py;
+    if (b.isFranke) {
+      bpy = b.py + (frankeTargetPY - b.py) * progress;
+    }
+    const cx = pad.l + bpx * cw;
+    const cy = pad.t + (1 - bpy) * ch;
+
+    // Shadow
+    ctx.save();
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = b.color;
+    ctx.beginPath();
+    ctx.arc(cx, cy, b.r, 0, Math.PI * 2);
+    ctx.fillStyle = b.color;
+    ctx.fill();
+    ctx.restore();
+
+    // Ring (Franke target)
+    if (b.isFranke && progress > 0.1) {
+      ctx.save();
+      ctx.globalAlpha = progress * 0.5;
+      ctx.beginPath();
+      ctx.arc(cx, cy, b.r + 12, 0, Math.PI * 2);
+      ctx.strokeStyle = '#C8102E';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 4]);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    ctx.fillStyle = b.textColor;
+    ctx.font = `bold 12px system-ui`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(b.name, cx, cy);
+  });
+}
+
+function showMapState(state, btn) {
+  mapState = state;
+  document.querySelectorAll('.map-toggle button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  mapAnimTarget = state === 'target' ? 1 : 0;
+  if (mapAnimFrame) cancelAnimationFrame(mapAnimFrame);
+  function step() {
+    const diff = mapAnimTarget - mapAnim;
+    mapAnim += diff * 0.07;
+    if (Math.abs(diff) < 0.001) { mapAnim = mapAnimTarget; drawBubbleMap(mapAnim); return; }
+    drawBubbleMap(mapAnim);
+    mapAnimFrame = requestAnimationFrame(step);
+  }
+  step();
+}
+
+// Tooltip for bubble map
+bubbleCanvas.addEventListener('mousemove', e => {
+  const rect = bubbleCanvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  const w = rect.width, h = rect.height;
+  const pad = { l: 64, r: 32, t: 32, b: 52 };
+  const cw = w - pad.l - pad.r;
+  const ch = h - pad.t - pad.b;
+  let hit = null;
+  brands.forEach(b => {
+    let bpy = b.py;
+    if (b.isFranke) bpy = b.py + (frankeTargetPY - b.py) * mapAnim;
+    const cx = pad.l + b.px * cw;
+    const cy = pad.t + (1 - bpy) * ch;
+    const dist = Math.sqrt((mx - cx) ** 2 + (my - cy) ** 2);
+    if (dist < b.r) hit = { brand: b, cx, cy };
+  });
+  const tt = document.getElementById('mapTooltip');
+  if (hit) {
+    tt.innerHTML = `<strong>${hit.brand.name}</strong><br>${hit.brand.desc}`;
+    tt.style.opacity = '1';
+    tt.style.left = (hit.cx + 20) + 'px';
+    tt.style.top = (hit.cy - 20) + 'px';
+    document.body.classList.add('hovering');
+  } else {
+    tt.style.opacity = '0';
+    document.body.classList.remove('hovering');
+  }
+});
+bubbleCanvas.addEventListener('mouseleave', () => {
+  document.getElementById('mapTooltip').style.opacity = '0';
+});
+
+// Init bubble map
+const bubbleObs = new IntersectionObserver(entries => {
+  if (entries[0].isIntersecting) { drawBubbleMap(0); bubbleObs.disconnect(); }
+}, { threshold: 0.2 });
+bubbleObs.observe(document.getElementById('trh'));
+
+// ── RADAR CHART (CANVAS) ──
+const radarCanvas = document.getElementById('radarChart');
+const radarData = {
+  labels: ['Povědomí', 'Emoce', 'Digitální', 'D2C', 'B2B síla', 'Prémiové vnímání'],
+  now:    [75, 28, 22, 18, 80, 68],
+  target: [88, 78, 72, 68, 88, 88],
+};
+let radarAnim = 0;
+let radarAnimTarget = 0;
+let radarAnimFrame = null;
+
+function drawRadar(progress) {
+  const { w, h, ctx } = setupCanvas(radarCanvas);
+  ctx.clearRect(0, 0, w, h);
+  const n = radarData.labels.length;
+  const cx = w / 2, cy = h / 2 + 10;
+  const maxR = Math.min(w, h) * 0.34;
+  const pi2 = Math.PI * 2;
+  const startAngle = -Math.PI / 2;
+
+  function angle(i) { return startAngle + (i / n) * pi2; }
+  function point(i, val) {
+    const a = angle(i);
+    const r = maxR * val / 100;
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  }
+
+  // Grid rings
+  [25, 50, 75, 100].forEach(pct => {
+    ctx.beginPath();
+    for (let i = 0; i < n; i++) {
+      const [x, y] = point(i, pct);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    if (pct === 50 || pct === 100) {
+      ctx.fillStyle = 'rgba(255,255,255,0.12)';
+      ctx.font = '9px system-ui';
+      ctx.textAlign = 'left';
+      ctx.fillText(pct + '%', cx + 4, cy - maxR * pct / 100 + 4);
+    }
+  });
+
+  // Axes
+  for (let i = 0; i < n; i++) {
+    const [x, y] = point(i, 100);
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(x, y);
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Label
+    const la = angle(i);
+    const lx = cx + (maxR + 26) * Math.cos(la);
+    const ly = cy + (maxR + 26) * Math.sin(la);
+    ctx.fillStyle = 'rgba(200,200,200,0.75)';
+    ctx.font = '11px system-ui';
+    ctx.textAlign = Math.abs(lx - cx) < 10 ? 'center' : lx < cx ? 'right' : 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(radarData.labels[i], lx, ly);
+  }
+
+  // Background (gray) — fixed "now" reference
+  ctx.beginPath();
+  for (let i = 0; i < n; i++) {
+    const [x, y] = point(i, radarData.now[i]);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(255,255,255,0.04)';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Animated overlay
+  ctx.beginPath();
+  for (let i = 0; i < n; i++) {
+    const nowVal = radarData.now[i];
+    const targetVal = radarData.target[i];
+    const val = nowVal + (targetVal - nowVal) * progress;
+    const [x, y] = point(i, val);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.fillStyle = `rgba(200,16,46,${0.12 + progress * 0.15})`;
+  ctx.fill();
+  ctx.strokeStyle = `rgba(200,16,46,${0.7 + progress * 0.25})`;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Dots
+  for (let i = 0; i < n; i++) {
+    const nowVal = radarData.now[i];
+    const targetVal = radarData.target[i];
+    const val = nowVal + (targetVal - nowVal) * progress;
+    const [x, y] = point(i, val);
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, pi2);
+    ctx.fillStyle = '#C8102E';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+}
+
+function switchRadar(state, btn) {
+  document.querySelectorAll('.radar-toggle button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  radarAnimTarget = state === 'target' ? 1 : 0;
+  if (radarAnimFrame) cancelAnimationFrame(radarAnimFrame);
+  function step() {
+    const diff = radarAnimTarget - radarAnim;
+    radarAnim += diff * 0.06;
+    if (Math.abs(diff) < 0.001) { radarAnim = radarAnimTarget; drawRadar(radarAnim); return; }
+    drawRadar(radarAnim);
+    radarAnimFrame = requestAnimationFrame(step);
+  }
+  step();
+}
+
+const radarObs = new IntersectionObserver(entries => {
+  if (entries[0].isIntersecting) { drawRadar(0); radarObs.disconnect(); }
+}, { threshold: 0.2 });
+radarObs.observe(document.getElementById('positioning'));
+
+// ── KILI SVG FLOW ANIMATION ──
+(function animKiliFlow() {
+  const dots = document.querySelectorAll('.flow-dot, .flow-dot-2');
+  let t = 0;
+  function step() {
+    t += 0.012;
+    dots.forEach((d, i) => {
+      const offset = (Math.sin(t + i * 1.5) + 1) / 2;
+      d.setAttribute('cy', i === 0 ? 95 + offset * 50 : 213 + offset * 50);
+      d.style.opacity = 0.4 + offset * 0.6;
+    });
+    requestAnimationFrame(step);
+  }
+  step();
+})();
+
+// ── RESIZE REDRAW ──
+window.addEventListener('resize', () => {
+  drawBubbleMap(mapAnim);
+  drawRadar(radarAnim);
+});
+</script>
+</body>
+</html>
